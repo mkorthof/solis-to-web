@@ -11,7 +11,7 @@ Tested with [Solis 4G Mini Inverter](https://www.solisinverters.au/product_detai
 
 ## Requirements
 
-A Solis data logging stick ([Solis-S2-WL-ST](https://www.solisinverters.com/global/accessories9/S2_WL_ST_gl.html)), a [MQTT broker](https://mqtt.org) ([Mosquitto](https://mosquitto.org)) and optionally a web server.
+A Solis Data Logger stick ([Solis-S2-WL-ST](https://www.solisinverters.com/global/accessories9/S2_WL_ST_gl.html)), a [MQTT broker](https://mqtt.org) (Eclipse [Mosquitto](https://mosquitto.org)) and optionally a web server.
 
 To run Mosquitto with Docker, see [here](https://hub.docker.com/_/eclipse-mosquitto#how-to-use-this-image).
 
