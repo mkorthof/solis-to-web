@@ -7,9 +7,9 @@ docker run \
 
 docker run \
     --detach \
-    --name solis-mqtt-to-web-client \
+    --name solis-mqtt-to-web \
     --volume "$PWD/config.py:/app/config.py" \
     --volume "$PWD/web:/app/web" \
     --link "mosquitto:mqtt-broker" \
-    ghcr.io/mkorthof/solis-mqtt-to-web-client:latest
+    ghcr.io/mkorthof/solis-mqtt-to-web:latest
 

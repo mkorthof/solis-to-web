@@ -49,11 +49,11 @@ To run in background and log to solis.log: `./run.sh`
 
 Run latest image from GitHub:
 
-`docker run --volume "$PWD/config.py:/app/config.py" --volume "$PWD/web:/app/web"  ghcr.io/mkorthof/solis-mqtt-to-web-client:latest`
+`docker run --volume "$PWD/config.py:/app/config.py" --volume "$PWD/web:/app/web"  ghcr.io/mkorthof/solis-mqtt-to-web:latest`
 
 Or use env vars e.g.:
 
-`docker run --env BROKER_HOST=1.2.3.4 --env BROKER_PORT=321 --env TOPIC="/ginlong/ABCDEF1234/update" --volume "$PWD/web:/app/web"  ghcr.io/mkorthof/solis-mqtt-to-web-client:latest`
+`docker run --env BROKER_HOST=1.2.3.4 --env BROKER_PORT=321 --env TOPIC="/ginlong/ABCDEF1234/update" --volume "$PWD/web:/app/web"  ghcr.io/mkorthof/solis-mqtt-to-web:latest`
 
 To run both Mosquitto and Client (detached):
 
