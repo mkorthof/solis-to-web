@@ -25,9 +25,13 @@ Goto webadmin page of Data stick:
 
 ## Configuration
 
-Edit config.py first. Set `BROKER_HOST` and (optionally) Auth with `BROKER_USERNAME` and `BROKER_PW` (remove settings to disable). 
+If config\.py does not exist yet, copy defaults from config.py.dist to config\.py first.
 
-Change `TOPIC` to your device serial number.
+Edit config\.py:
+
+- set `BROKER_HOST`
+- (optionally) set auth with `BROKER_USERNAME` and `BROKER_PW`, remove settings to disable
+- change `TOPIC` to your device serial number
 
 *NOTE: Environment vars will overwrite config settings*
 

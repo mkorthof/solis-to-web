@@ -11,5 +11,6 @@ wheels/
 
 archive/
 web/
+config.py
 solis.pid
 solis.log

@@ -1,5 +1,7 @@
 #!/bin/sh
 
+#cp --update=none config.py.dist config.py
+
 docker run \
     --detach \
     --name mosquitto \
