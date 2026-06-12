@@ -1,0 +1,12 @@
+[project]
+name = "solis-mqtt-to-web-client"
+version = "0.1.0"
+description = " Solis MQTT to Web Client"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "mqtt-client>=1.6.1",
+    "numpy>=2.4.4",
+    "pandas>=3.0.2",
+    "plotly>=6.7.0",
+]
