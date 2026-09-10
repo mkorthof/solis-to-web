@@ -1,3 +1,5 @@
+# CONFIGURATION
+
 # Host or IP of MQTT broker
 BROKER_HOST = "10.20.30.40"
 BROKER_PORT = 1883
@@ -7,34 +9,37 @@ BROKER_USERNAME = "solis"
 BROKER_PW = "solis"
 
 # Subscribe to topic '/ginlong/<serial>/update', where <serial>
-# is the device serial number of the inverter (Ginglong Technologies is Solis)
+# is the device serial number of the Datalogger (Ginglong Technologies is Solis)
 TOPIC = "/ginlong/1A123456ABC0123F/update"
+
+# Collector ID, default is '11'
+COLLECTOR_ID = "COLLECTOR11"
 
 # Inverter ID, default is '1'
 INVERTER_ID = "INVERTER1"
 
-# Base directory for json and html files
-WEBDIR = './web'
+# Store data in 'files' or sqlite 'database' (*WIP*). Default: "files"
+STORE = "files"
 
-# Mask serial etc in output, e.g. when serving web dir publicly 
-MASK = True
+# Base web directory for html files etc
+WEBDIR = "./www"
 
-# Title index.html, default: "☀️ Solis Inverter"
-INDEX_TITLE = "☀️ Solis Inverter"
+# Do not show Messages and mask device serial etc in output, e.g. when serving web dir publicly 
+MASK = False
 
-# All available periods: 'yesterday', 'week', 'month', 'year', 'this_month', 'this_year'.
+# Title of index.html, default: "☀️ Solis MQTT 2 Web"
+INDEX_TITLE = "☀️ Solis 2 Web"
 
-# Show messages and plot period (besides 'Today')
-SHOW_PERIODS = ['yesterday', 'week']
+# Show plot types on index page for today and yesterday, 
+INDEX_PLOT_TYPES = ['E_TODAY', 'APPARENT_POWER']
 
-# Add links to more messages and plot periods
-LINK_PERIODS = ['month', 'year']
+# Link to plots for these periods and types
+# All available periods: ['yesterday', 'week', 'month', 'year', 'this_month', 'this_year']
+LINK_PLOT_PERIODS = ['week', 'month', 'year']
+LINK_PLOT_TYPES = ['E_TODAY', 'APPARENT_POWER']
 
-# Plot title, unit for yaxis and color
-PLOT_TYPES = {
-    'yield': { 'name': 'Plot Energy Yield', 'unit': 'kWh', 'color': 'blue' },
-    'power': { 'name': 'Plot Power', 'unit': 'watt', 'color': 'red' }
-}
+# Links to older messages
+LINK_PREVIOUS_MESSAGES = ['week', 'month', 'year' ]
 
 # Offset hours to invertor timestamp
 TS_OFFSET = 6
@@ -44,8 +49,30 @@ WEBSTATIC = True
 
 # Files in {WEBDIR}/static. If you set WEBSTATIC to False you'll have manually copy them.
 WEBSTATIC_FILES = [
-    'helper.js',
-    'simple.css',
-    'custom.css',
-    'plotly.min.js'
+    "helper.js",
+    "assets/css/simple.css",
+    "assets/css/custom.css",
+    "assets/img/collector.svg",
+    "assets/img/electricity.svg",
+    "assets/img/happy.svg",
+    "assets/img/sun.svg",   
 ]
+
+# All available plots definitions. To add or remove plot completely, (un)comment it below.
+#   "field" gets y-axis values: { 'name' used in title, 'div' field values, 'unit' for y label and line 'color' }
+#    optional: 'num': [0-3] to select PV1-4 (default is 0) and 'disabled': True|False
+PLOTS = {
+    "APPARENT_POWER": { 'name': 'Total Inverter Power', 'div': 1000, 'unit': 'kW', 'color': 'red'},
+    "DC_TOTALPOWER": { 'name': 'DC Total Power', 'div': 1000, 'unit': 'kW', 'color': 'gray' },   # SolisCloud: DC Power PV1 (W)
+    "REACTIVE_POWER": { 'name': 'Reactive Power', 'unit': 'Var', 'color': 'purple' },
+    "POWER_FACTOR": { 'name': 'Power Factor', 'unit': 'pf%', 'color': 'green' },
+    "E_TODAY": { 'name': 'Energy Yield', 'div': 10, 'unit': 'kWh', 'color': 'blue' },
+    "U_PV": { 'name': 'DC Voltage PV', 'unit': 'V', 'color': 'brown', 'num': 0 },
+    "I_PV": { 'name': 'DC Current PV', 'unit': 'A', 'color': 'orange', 'num': 0  },
+    "U_MPPT": { 'name': 'DC Voltage MPPT ', 'unit': 'V', 'color': 'brown', 'num': 0  },
+    "I_MPPT": { 'name': 'DC Current MPPT ', 'unit': 'A', 'color': 'orange', 'num': 0  },
+    "U_AC": { 'name': 'AC Voltage', 'unit': 'V', 'color': 'brown', 'num': 0  },
+    "I_AC": { 'name': 'AC Current', 'unit': 'A', 'color': 'orange', 'num': 0  },
+    "PAC": { 'name': 'AC Output Total Power', 'unit': 'kW', 'color': 'pink', 'disabled': True },
+    "FAC": { 'name': 'AC Frequency', 'unit': 'Hz', 'color': 'teal', 'disabled': True },
+}
