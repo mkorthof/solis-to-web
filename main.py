@@ -72,5 +72,26 @@ if '--test' in sys.argv:
     test(period)
     sys.exit(0)
 
+
+if '--createdb' in sys.argv:
+    db.create_table()
+    sys.exit(0)
+
+
+if '--importdb' in sys.argv:
+    db.import_json()
+    sys.exit(0)
+
+
+if '--convertfn' in sys.argv:
+    helper.conv_fn()
+    sys.exit(0)
+
+
+if '-h' in sys.argv:
+    print(f'./{sys.argv[0]} [---test|--createdb|--importdb|--help]')
+    sys.exit(0)
+
+
 if __name__ == "__main__":
     main()
