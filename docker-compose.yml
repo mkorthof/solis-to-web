@@ -1,0 +1,12 @@
+---
+services:
+  mosquitto:
+    image: eclipse-mosquitto
+  solis-mqtt-to-web:
+    #image: ghcr.io/mkorthof/solis-mqtt-to-web:latest
+    build: .
+    volumes:
+      - ./config.py:/app/config.py
+      - ./www:/app/www
+    links:
+      - mosquitto:mqtt-broker
