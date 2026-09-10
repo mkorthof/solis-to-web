@@ -13,5 +13,5 @@ docker run \
     --volume "./config.py:/app/config.py" \
     --volume "./www:/app/www" \
     --link "mosquitto:mqtt-broker" \
-    ghcr.io/mkorthof/solis-mqtt-to-web:latest
+    ghcr.io/mkorthof/solis-to-web:latest
 
