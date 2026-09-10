@@ -1,6 +1,6 @@
 // Solis JS helper functions
 
-function updated(date) {
+function lastUpdated(date) {
     let now = Date.now();
     let time = new Date(date).getTime();
     let sec = (now - time) / 1000 || -1;
@@ -13,13 +13,13 @@ function updated(date) {
         text = sec.toFixed(0) + ' seconds ago';
     }
     if (sec < 0)  {
-        //console.log('DEBUG: updated - time not in sync (sec < 0)')
-        text += ' (‼️time desync ) ';
+        //console.log('DEBUG: lastUpdated - time not in sync (sec < 0)')
+        text += ' (‼️time desync) ';
     }
     document.getElementById('updated').innerText = text;
 }
 
-function jsonType(jsonString, mask) {
+function jsonType(jsonString) {
     jsonString = jsonString.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     return jsonString.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
       let type = 'number';
@@ -34,16 +34,58 @@ function jsonType(jsonString, mask) {
       } else if (/null/.test(match)) {
           type = 'null';
       }
-        return `<span class="${type}">${match}</span>`;
+    return `<span class="${type}">${match}</span>`;
   });
+};
+
+
+// from https://gist.github.com/Kvit/df8a04e84a2b56b1dda10dd6d42b9b30
+const jsonSearch = (obj, searchKey, replaceValue, results = []) => {
+    const r = results;
+    // if this is array, iterate elements
+    if (Array.isArray(obj)) {
+        //console.log("DEBUG: jsonSearch - ARRAY LENGTH ", obj.length);
+        for (const element of obj) {
+            // console.log("DEBUG: jsonSearch -- searching array element: ");
+            jsonSearch(element, searchKey, r);
+        }
+    // if this is object, iterate keys
+    } else if (typeof obj === "object") {
+        for (let key in obj) {
+            let value = obj[key];
+            // add matching key to results
+            if (key === searchKey) {
+                obj[key] = replaceValue;
+                // Optional: unbox array of one
+                if (Array.isArray(value) && value.length === 1) value = value[0];
+                r.push(value);
+            }
+            const keyType = typeof obj[key];
+            //console.log("DEBUG: jsonSearch - key: ", key, " / type: ", keyType);
+            // look inside objects
+            if (keyType === "object") {
+                //console.log("DEBUG: jsonSearch - searching inside object: ", key);
+                jsonSearch(value, searchKey, r);
+            }
+        }
+    }
+  //return r;
+  return obj
 };
 
 function prettyPrintJSON(json, mask) {
     document.getElementById("message").innerHTML = ''
     document.getElementById("message").innerHTML = `${showClose()}`
-    let jStr = jsonType(JSON.stringify(json, null, 2))
-    let val = mask ?  jStr.replace(/[A-Z0-9]{10}/g, '***') : jStr
-    document.getElementById("message").innerHTML += `<pre>${val}</pre>`
+    let result
+    if (mask) {
+        let tmp = jsonSearch(json, 'IP')
+        let jStr = jsonType(JSON.stringify(tmp, null, 2))
+        //val = mask ? jStr.replace(/[A-Z0-9]{10}/g, '***') : jStr
+        result =  jStr.replace(/[A-Z0-9]{10}/g, '***')
+    } else {
+        result  = jsonType(JSON.stringify(json, null, 2))
+    }
+    document.getElementById("message").innerHTML += `<pre>${result}</pre>`
     setTimeout(() => {
         document.getElementById('message').scrollIntoView();
     }, 50);
@@ -77,9 +119,16 @@ function json2Html(data, mask) {
                 };
                 v = '"' + v + '"'
             }
+            if (typeof v == 'number') {
+                if (k.endsWith('IP')) { 
+                    if (mask) {
+                        v = '***';
+                    }
+                }
+            }
             html += `
                 <tr>
-                    <td >${k}</td>
+                    <td>${k}</td>
                     <td>${v}</td>
                 </tr>`;
         };
@@ -96,20 +145,20 @@ function showClose(){
         <div class="close" style="float:right;position:fixed;top:10px;right:30px;">
             <a href="#" onclick='document.getElementById("message").innerHTML = "";'>Close</a> [<a href="#" onclick='document.getElementById("message").innerHTML = "";'>x</a>]
         </div>
-    `
+    `;
 }
 
 function fetchJSONData (filename, output='pretty', mask='false') {
     fetch(filename)
         .then((response) => {
             if (!response.ok) {
-                throw new Error("Error fetching json data, response was not ok");
+                throw new Error(`Error fetching json data, response was not ok (filename=${filename})`);
             }
             return response.json();
         })
         .then((data) => {
-            //console.log(data);
-            if (output == 'pretty') {
+            //console.log('DEBUG: fetchJSONData data =', data);
+            if (output == 'pretty'  ) {
                 prettyPrintJSON(data, mask);
             } else if (output =='html') {
                 json2Html(data, mask);
