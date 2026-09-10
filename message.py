@@ -1,84 +1,117 @@
 import config
+import db
 import helper
 
 import json
 import glob
 
-def today(payload):
-    ''' Get info e.g. power and yield values from current message payload '''
-    data = {
-        'timestamp': None,
-        'date': None,
-        'time': None,
-        'temp': None,
-        'power': None,
-        'state': None,
-        'warning': None,
-        'e_today': None,
-        'e_yesterday': None,
-        'e_month': None,
-        'e_year': None,
-        'e_total': None
-    }
+
+def plot_fields(device):
+    ''' Return plot fields,  '''
+    data = {}
+    fields = list(config.PLOTS) + ['E_MONTH', 'E_YEAR', 'E_TOTAL']
+    for f in fields:
+        data[f] = device[f] if device.get(f) else None
+    return(data)
+
+
+def inverter_ts(payload):
+    ''' Get device timestamp from current message payload '''
+    data = None
     try:
-        notification = json.loads(payload)['NOTIFICATION'][config.INVERTER_ID]
-        data['timestamp'] = helper.fmt_timestamp(notification['INVERTER_TIME'])
+        payload = json.loads(payload)
+        inverter = payload['NOTIFICATION'][config.INVERTER_ID]
+        data = inverter['INVERTER_TIME']
+    except IndexError:
+        pass
+    return(data)
+
+
+def read_file(period):
+    data = {}
+    for fn in sorted(glob.glob(f'{config.WEBDIR}/json/{helper.fn_date(period)}*-solis.json'), reverse=True):
+        try:
+            with open(fn, 'r', encoding='utf-8', errors='ignore') as f_json:
+                f_content = f_json.read()
+            try:
+                timestamp = inverter_ts(f_content)
+                if (period in ['week', 'month', 'year'] and not helper.is_days_ago(timestamp, period)):
+                    continue
+                payload = json.loads(f_content)
+                inverter = payload['NOTIFICATION'][config.INVERTER_ID]
+                datetime = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+                data[datetime] = plot_fields(inverter)
+                data[datetime]['fn'] = 'json/' + fn.split('/')[-1]
+                #data[timestamp]['json'] = f_content
+            except (KeyError, IndexError) as e:
+                pass
+        except json.decoder.JSONDecodeError as e:
+            print(f'ERROR: decoding JSON from file "{fn}" - "{e}"')
+    return(data)
+
+
+def query_db(period, plot_key):
+    '''' Query database with specific json path and key in 'payload' column '''
+    data = {}
+    for timestamp, payload in db.query_json_path(f'{helper.db_date(period)}%', f'$.NOTIFICATION.{config.INVERTER_ID}', plot_key):
+        timestamp = inverter_ts(payload)
+        if (period in ['week', 'month', 'year'] and not helper.is_days_ago(timestamp, period)):
+            continue
+        datetime = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+        print(f'DEBUG: write_period_data db datetime={datetime} period={period} db_date={helper.db_date(period)}%')
+        data[datetime] = {plot_key: payload}
+    return(data)
+
+
+def _query_db_all(period):
+    ''' Query database with json path in 'payload' column '''
+    data = {}
+    for timestamp, payload in db.query_json_path(f'{helper.db_date(period)}%', f'$.NOTIFICATION.{config.INVERTER_ID,}'):
+        try:
+            timestamp = inverter_ts(payload)
+            if (period in ['week', 'month', 'year'] and not helper.is_days_ago(timestamp, period)):
+                continue
+            payload = json.loads(payload)
+            datetime = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+            inverter = payload['NOTIFICATION'][config.INVERTER_ID]
+            data = plot_fields(inverter)
+            data[datetime] = payload
+            # TODO: db - handle json files?
+            #data[datetime]['fn'] = ''
+            #data[datetime]['json'] = payload
+        except (KeyError, IndexError) as e:
+            pass
+    return(data)
+
+
+def last(payload):
+    ''' Get values like power and yield from current message payload '''
+    data = {}
+    try:
+        timestamp = inverter_ts(payload)
+        payload = json.loads(payload)
+        inverter = payload['NOTIFICATION'][config.INVERTER_ID]
+        data = plot_fields(inverter)
+        data['timestamp'] = timestamp
         data['date'] = data['timestamp'].strftime("%Y-%m-%d")
         data['time'] = data['timestamp'].strftime("%H:%M:%S")
-        data['temp'] = notification['INVERTER_TEMP']/10
-        data['power'] = notification['APPARENT_POWER']
-        data['state'] = notification['CURRENT_STATE']
-        data['warning'] = notification['WARNING_INFO_DATA']
-        data['e_today'] = notification['E_TODAY']/10
+        data['payload'] = payload
+        data['e_yesterday'] = None
         try:
-            data['e_yesterday'] = [v['yield'] for k, v in previous('yesterday').items()][0]
+            data['e_yesterday'] = [vals['E_TODAY'] for _, vals in history('yesterday', None).items()][0]
         except IndexError:
             pass
-        data['e_month'] = notification['E_MONTH']
-        data['e_year'] = notification['E_YEAR']
-        data['e_total'] = notification['E_TOTAL']
     except KeyError as e:
         print(f'ERROR: parsing JSON for "Today" - {e}')
     return(data)
     
 
-def pattern(period):
-    ''' Return glob pattern for period '''
-    pattern = None
-    if (period == 'today' or period == 'yesterday'):
-        pattern = f'{helper.prefix_date(period)}_*'
-    elif (period == 'this_month' or period == 'this_year'):
-        pattern = f'{helper.prefix_date(period)}*';
-    else:
-        pattern = '*'   
-    return pattern
-
-
-def previous(period):
-    ''' Get previous info values from multiple json files '''
+def history(period, plot_key=None):
+    ''' Get previously stored values from (multiple) json '''
     data = {}
-    for fn in sorted(glob.glob(f'{config.WEBDIR}/json/{pattern(period)}-solis.json'), reverse=True):
-        try:
-            with open(fn, 'r', encoding='utf-8', errors='ignore') as f_json:
-                payload = f_json.read()
-            try:
-                notification = json.loads(payload)['NOTIFICATION'][config.INVERTER_ID]
-                timestamp = helper.fmt_timestamp(notification['INVERTER_TIME'])
-                if (period in ['week', 'month', 'year'] and not helper.is_days_ago(timestamp, period)):
-                    continue                
-                e_today = notification['E_TODAY']/10
-                a_power = notification['APPARENT_POWER']
-                f_date, f_time = fn.split('/')[-1].split('-')[0].split('_')
-                data[timestamp] = {
-                    'fn': 'json/' + fn.split('/')[-1],
-                    'f_date': f_date,
-                    'f_time': f_time,
-                    'power': a_power,
-                    'yield': e_today,
-                    'payload': payload
-                }
-            except json.decoder.JSONDecodeError as e:
-                print(f'ERROR: decoding JSON from file "{fn}" - "{e}"')
-        except (KeyError, IndexError) as e:
-            pass
+    if config.STORE == 'database':
+        print(f'DEBUG: message - history (db) period={period} db_date={helper.db_date(period)}%')
+        data = query_db(period, plot_key)
+    else:
+        data = read_file(period)
     return(data)
