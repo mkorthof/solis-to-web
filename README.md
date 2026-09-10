@@ -67,6 +67,6 @@ To run both Mosquitto and Client (detached):
 
 ## docker compose
 
-Build local image and run both Mosquitto and Client (detached):
+Run Mosquitto and Client using compose (detached):
 
 `./docker compose up -d`
