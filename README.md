@@ -33,6 +33,8 @@ Edit config\.py:
 - (optionally) set auth with `BROKER_USERNAME` and `BROKER_PW`, remove settings to disable
 - change `TOPIC` to your device serial number
 
+Remeber check for config changes after updating (see [commits](https://github.com/mkorthof/solis-to-web/commits/master/))
+
 *NOTE: Environment vars will overwrite config settings*
 
 ## Running
