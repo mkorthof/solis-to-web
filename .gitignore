@@ -9,8 +9,14 @@ wheels/
 # Virtual environments
 .venv
 
+.vscode
 archive/
+import/
+export/
 web/
+www/
 config.py
 solis.pid
 solis.log
+solis.db
+solis-example.sql
