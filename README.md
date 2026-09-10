@@ -1,4 +1,4 @@
-# Solis MQTT to Web Client
+# Solis to Web
 
 *Gets Solis Inverter data and stores as web pages*
 
@@ -41,13 +41,13 @@ Either use uv or Docker.
 
 If you do not have uv, check [installation](https://docs.astral.sh/uv/getting-started/installation). It will take care of depedencies (e.g. Paho and Plotly modules).
 
-Output html and json files are stored in 'web' dir (optionally use e.g. NGINX to serve).
+Output html and json files are stored in 'www' dir (optionally use e.g. NGINX to serve).
 
 ## uv
 
-To run in foreground: `uv run main.py`
+Run in background and log to solis.log: `./run.sh`
 
-To run in background and log to solis.log: `./run.sh` 
+To run in foreground: `uv run main.py`
 
 ## docker
 
@@ -62,3 +62,9 @@ Or use env vars e.g.:
 To run both Mosquitto and Client (detached):
 
 `./docker-run.sh`
+
+## docker compose
+
+Build local image and run both Mosquitto and Client (detached):
+
+`./docker compose up -d`
