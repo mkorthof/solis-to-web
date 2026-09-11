@@ -27,8 +27,9 @@ WEBDIR = "./www"
 # Do not show Messages and mask device serial etc in output, e.g. when serving web dir publicly 
 MASK = False
 
-# Title of index.html, default: "☀️ Solis MQTT 2 Web"
-INDEX_TITLE = "☀️ Solis 2 Web"
+# Title of html pages
+TITLE = "☀️ Solis 2 Web"
+HEADER = '<img src="static/sun.svg" class="icon"> Solis 2 Web'
 
 # Show plot types on index page for today and yesterday, 
 INDEX_PLOT_TYPES = ['E_TODAY', 'APPARENT_POWER']
