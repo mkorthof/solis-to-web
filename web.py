@@ -78,14 +78,14 @@ def index_html(payload):
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <link rel="stylesheet" href="static/simple.css">
                 <link rel="stylesheet" href="static/custom.css">
-                <script type="text/javascript" src="static/helper.js"></script>
-                <title>{config.INDEX_TITLE}</title>
+            <script type="text/javascript" src="static/helper.js"></script>
+                <title>{config.TITLE}</title>
             </head>
             <body>
                 <header>
                     <h1>
                         <a href="index.html" style="text-decoration:none;color:var(--text)">
-                            <img src="static/sun.svg" class="icon"> Solis 2 Web
+                            {config.HEADER}
                         </a>
                     </h1>
                 </header>
@@ -180,12 +180,12 @@ def messages_html(period):
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <link rel="stylesheet" href="static/simple.css">
                 <link rel="stylesheet" href="static/custom.css">
-                <script type="text/javascript" src="static/helper.js"></script>
-                <title>{config.INDEX_TITLE} - Messages</title>
+            <script type="text/javascript" src="static/helper.js"></script>
+                <title>{config.TITLE} - Messages</title>
             </head>
             <body>
-                <header>
-                    <h1><a href="index.html" style="text-decoration:none;color:var(--text)">{config.INDEX_TITLE}</a></h1>
+            <header>
+                    <h1><a href="index.html" style="text-decoration:none;color:var(--text)">{config.HEADER}</a></h1>
                 </header>
                 <main>
                     <h3>Message history '{period}'</h3>
