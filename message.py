@@ -38,7 +38,7 @@ def read_file(period):
                 timestamp = inverter_ts(f_content)
                 # TODO: temp convert ts back to dt obj
                 #dt = timestamp.strftime("%Y-%m-%d %H:%M:%S")
-                dt = datetime.datetime.fromtimestamp(timestamp)
+                dt = helper.fmt_datetime(timestamp, True)
                 if (period in ['week', 'month', 'year'] and not helper.is_days_ago(dt, period)):
                     continue
                 payload = json.loads(f_content)
@@ -97,7 +97,7 @@ def last(payload):
         inverter = payload['NOTIFICATION'][config.INVERTER_ID]
         data = plot_fields(inverter)
         # TODO: temp convert ts back to dt obj
-        dt = datetime.datetime.fromtimestamp(timestamp)
+        dt = helper.fmt_datetime(timestamp, True)
         data['timestamp'] = dt
         data['date'] = data['timestamp'].strftime("%Y-%m-%d")
         data['time'] = data['timestamp'].strftime("%H:%M:%S")
