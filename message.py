@@ -2,6 +2,7 @@ import config
 import db
 import helper
 
+import datetime
 import json
 import glob
 
@@ -35,13 +36,16 @@ def read_file(period):
                 f_content = f_json.read()
             try:
                 timestamp = inverter_ts(f_content)
-                if (period in ['week', 'month', 'year'] and not helper.is_days_ago(timestamp, period)):
+                # TODO: temp convert ts back to dt obj
+                #dt = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+                dt = datetime.datetime.fromtimestamp(timestamp)
+                if (period in ['week', 'month', 'year'] and not helper.is_days_ago(dt, period)):
                     continue
                 payload = json.loads(f_content)
                 inverter = payload['NOTIFICATION'][config.INVERTER_ID]
-                datetime = timestamp.strftime("%Y-%m-%d %H:%M:%S")
-                data[datetime] = plot_fields(inverter)
-                data[datetime]['fn'] = 'json/' + fn.split('/')[-1]
+                #dt = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+                data[dt] = plot_fields(inverter)
+                data[dt]['fn'] = 'json/' + fn.split('/')[-1]
                 #data[timestamp]['json'] = f_content
             except (KeyError, IndexError) as e:
                 pass
@@ -57,9 +61,9 @@ def query_db(period, plot_key):
         timestamp = inverter_ts(payload)
         if (period in ['week', 'month', 'year'] and not helper.is_days_ago(timestamp, period)):
             continue
-        datetime = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+        dt = timestamp.strftime("%Y-%m-%d %H:%M:%S")
         print(f'DEBUG: write_period_data db datetime={datetime} period={period} db_date={helper.db_date(period)}%')
-        data[datetime] = {plot_key: payload}
+        data[dt] = {plot_key: payload}
     return(data)
 
 
@@ -72,13 +76,13 @@ def _query_db_all(period):
             if (period in ['week', 'month', 'year'] and not helper.is_days_ago(timestamp, period)):
                 continue
             payload = json.loads(payload)
-            datetime = timestamp.strftime("%Y-%m-%d %H:%M:%S")
             inverter = payload['NOTIFICATION'][config.INVERTER_ID]
             data = plot_fields(inverter)
-            data[datetime] = payload
+            dt = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+            data[dt] = payload
             # TODO: db - handle json files?
-            #data[datetime]['fn'] = ''
-            #data[datetime]['json'] = payload
+            #data[dt]['fn'] = ''
+            #data[dt]['json'] = payload
         except (KeyError, IndexError) as e:
             pass
     return(data)
@@ -92,7 +96,9 @@ def last(payload):
         payload = json.loads(payload)
         inverter = payload['NOTIFICATION'][config.INVERTER_ID]
         data = plot_fields(inverter)
-        data['timestamp'] = timestamp
+        # TODO: temp convert ts back to dt obj
+        dt = datetime.datetime.fromtimestamp(timestamp)
+        data['timestamp'] = dt
         data['date'] = data['timestamp'].strftime("%Y-%m-%d")
         data['time'] = data['timestamp'].strftime("%H:%M:%S")
         data['payload'] = payload
