@@ -21,7 +21,7 @@ if ! pgrep -F solis.pid 2>/dev/null; then
     { PYTHONUNBUFFERED=1 nohup uv run main.py >solis.log 2>&1 & } && echo $! | tee solis.pid
 else
     echo "\"${SERVICE}\" is already running, skipping uv run.."
-    echo "( To restart, add option: '$0 --restart' )"
+    echo "( To restart, run: '$0 restart' )"
     exit 0
 fi
 
