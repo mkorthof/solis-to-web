@@ -154,25 +154,20 @@ def webdirs():
             shutil.copyfile(fpath, f'{config.WEBDIR}/static/{os.path.basename(fpath)}')
 
 
-def divide(value, divisor, num):
-    ''' Convert unit by dividing value (e.g. W to kW) '''
-    try:
-        return(int(value[num])/divisor if isinstance(value, list) else int(value)/divisor)
-    except (KeyError, ValueError, TypeError):
-        pass
-    return(value)
-
-
-def conv_fn():
-    ''' Convert fn YYYYmmd_MMHHSS-solis.json to fn with path:  YYYY/mm/dd/timestamp.json '''
-    print('INFO: dry run, not moving files..')
-    for fn in sorted(glob.glob(f'{config.WEBDIR}/json/*-solis.json')):
-        f_date, f_time = fn.split('/')[-1].split('-')[0].split('_')
-        f_datetime = f'{f_date}{f_time}'
-        dt_obj = datetime.datetime.strptime(f_datetime, "%Y%m%d%H%M%S")
-        timestamp = int(dt_obj.timestamp())
-        newdir = f'{config.WEBDIR}/json/{dt_obj.strftime("%Y/%m/%d")}'
-        #os.makedirs({newdir, exist_ok=True)
-        #os.rename(fn, f'{newdir}/{timestamp}.json'}
-        print(f'DEBUG: convert_fn makedirs {newdir} rename {fn.split('/')[-1]} -> {newdir}/{timestamp}.json  (f_date={f_date} f_time={f_time})')
+def write_data(payload):
+    ''' Get data from json. Generate and write index, plot and message as html files '''
+    data = {}
+    for period in config.USE_PERIODS:
+        data[period] = message.get(period)
+    for period in ['today', 'yesterday'] + config.LINK_PLOT_PERIODS:
+        for plot_key in config.PLOTS:
+            plot_values = plot.values(period, plot_key, data[period])
+            plot.write_plot(period, plot_key, plot_values)
+    for period in ['today'] + config.LINK_PREVIOUS_MESSAGES:
+        with open(f'{config.WEBDIR}/messages_{period}.html', 'w', encoding='utf-8', errors='ignore') as f:
+            f.write(web.messages_html(period, data[period]))
+    with open(f'{config.WEBDIR}/plots_all.html', 'w', encoding='utf-8', errors='ignore') as f:
+        f.write(web.plots_all_html(config.USE_PERIODS)) 
+    with open(f'{config.WEBDIR}/index.html', 'w', encoding='utf-8', errors='ignore') as f:
+        f.write(web.index_html(payload, {'today': data['today'], 'yesterday': data['yesterday']}))
 
