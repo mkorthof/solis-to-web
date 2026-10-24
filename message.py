@@ -73,7 +73,7 @@ def dt_pattern(period):
             datetime.datetime.fromtimestamp(datetime.datetime.now().timestamp()+3600*config.TS_OFFSET).strftime("%Y-%m-%d %H:%M"),
             'today',
             datetime.datetime.now().strftime("%Y-%m-%d"),
-            'today (offset)'
+            'today (offset)',
             datetime.datetime.fromtimestamp(datetime.datetime.now().timestamp()+3600*config.TS_OFFSET).strftime("%Y-%m-%d"),
             'yesterday (offset)',
             (datetime.datetime.fromtimestamp(datetime.datetime.now().timestamp()+3600*config.TS_OFFSET) - datetime.timedelta(days = 1)).strftime("%Y-%m-%d")
