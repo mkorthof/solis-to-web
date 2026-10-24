@@ -4,6 +4,7 @@ import helper
 import codes
 
 import datetime
+import json
 
 
 ''' HTML Templates '''
@@ -18,10 +19,40 @@ def plot_html(period, plot):
     except Exception as e:
         print(f'ERROR: reading {plot} plot HTML file for "{plot}" "{period}" - "{e}"')
         data = f'<p>❌ Plot "{period.capitalize()} - {plot}" is not available</p>'
-    return(data)
+    return data
 
 
-def messages_table(period):
+
+def head():
+    return(f'''
+            <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <link rel="stylesheet" href="static/simple.css">
+            <link rel="stylesheet" href="static/custom.css">
+            <script type="text/javascript" src="static/helper.js"></script>
+            <title>{config.TITLE}</title>
+        </head>
+    ''')
+
+
+def footer():
+    return(f'''
+        <footer>
+            <p>Page generated on {helper.fmt_date_time()} {'(with database)' if config.USE_DB else ''} </p>
+            <p>
+                <a href="https://mqtt.org">MQTT</a> | 
+                <a href="https://mosquitto.org">Mosquitto</a> | 
+                <a href="https://eclipse.dev/paho">Paho</a> | 
+                <a href="https://plotly.com/python">Plotly</a> |  
+                <a href="https://www.sqlite.org">SQLite</a> | 
+                <a href="https://github.com/kevquirk/simple.css">Simple.css</a>
+            </p>
+        </footer>
+    ''')
+
+
+def messages_table(payload):        
     return(f'''
         <table>\n\
             <tr>\n \
