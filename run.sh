@@ -1,37 +1,68 @@
 #!/bin/sh
 
-# Run using 'uv' (https://docs.astral.sh/uv/)
-
-SERVICE="Solis MQTT to Web Client"
+# Run Solis To Web service
 
 if ! command -v uv >/dev/null 2>&1; then
-    echo "Error: could not find \"uv\", exiting..."
+    echo "ERROR: could not find 'uv' (https://docs.astral.sh/uv), exiting..."
     exit 1
 fi
 
-if [ "$1" = "restart" ]; then
-  echo "Restarting \"$SERVICE\""
-  pkill -F solis.pid  || "ERROR: could not kill service"
-  rm -f solis.pid
-fi
+SERVICE="Solis MQTT to Web Client"
+PID="$(pgrep -F solis.pid 2>/dev/null)"
 
-printf "PID: " 
-if ! pgrep -F solis.pid 2>/dev/null; then
+func_status() {
+    if [ -n "$PID" ]; then
+        printf "\"%s\" is running (pid:%s)\n" "$SERVICE" "$PID"
+    else
+        printf "\"%s\" is not running\n" "$SERVICE"
+    fi
+}
+
+func_run() {
+    if [ -z "$PID" ]; then
+        rm -f solis.pid
+        { PYTHONUNBUFFERED=1 nohup uv run main.py >solis.log 2>&1 & } && echo $! > solis.pid
+        sleep 1
+        PID="$(pgrep -F solis.pid 2>/dev/null)"
+        if [ -n "$PID" ]; then
+            printf "Saved pid %s as solis.pid, logging to solis.log\n" "$PID"
+        else
+            rm -f solis.pid
+            echo "ERROR: failed to start, exiting.."
+            exit 1
+        fi
+    else
+        printf "Already running (pid:%s), to restart: '%s restart'\n" "$PID" "$0" 
+    fi
+}
+
+func_kill() {
+    pkill -F solis.pid  || { "ERROR: could not kill service"; exit 1; }
     rm -f solis.pid
-    { PYTHONUNBUFFERED=1 nohup uv run main.py >solis.log 2>&1 & } && echo $! | tee solis.pid
-else
-    echo "\"${SERVICE}\" is already running, skipping uv run.."
-    echo "( To restart, run: '$0 restart' )"
-    exit 0
-fi
+    PID=""
+}
 
-sleep 1
+case "$1" in
+    status)
+        func_status
+    ;;
+    start)
+        printf "Starting \"%s\"..\n" "$SERVICE"
+        func_run
+    ;;
+    stop)
+        printf "Stopping \"%s\"..\n" "$SERVICE"
+        func_kill
+    ;;
+    restart)
+        printf "Restarting \"%s\"..\n" "$SERVICE"
+        func_kill
+        func_run
+    ;;
+    *)
+        func_status
+        printf "Usage: %s [start|stop|restart|status]\n" "$0"
+    ;;
+esac
 
-if pgrep -F solis.pid >/dev/null 2>&1; then
-    echo "Started \"${SERVICE}\", saved solis.pid and logging to solis.log.."
-    exit 0
-else
-    rm -f solis.pid
-    echo "ERROR: \"${SERVICE}\" failed to start, exiting.."
-    exit 1
-fi
+exit 0
