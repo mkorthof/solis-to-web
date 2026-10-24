@@ -6,23 +6,30 @@ BROKER_PORT = 1883
 
 # Broker Auth (optional), default is "solis/solis"
 BROKER_USERNAME = "solis"
-BROKER_PW = "solis"
+BROKER_PASSWORD = "solis"
 
 # Subscribe to topic '/ginlong/<serial>/update', where <serial>
 # is the device serial number of the Datalogger (Ginglong Technologies is Solis)
 TOPIC = "/ginlong/1A123456ABC0123F/update"
 
-# Collector ID, default is '11'
-COLLECTOR_ID = "COLLECTOR11"
-
 # Inverter ID, default is '1'
 INVERTER_ID = "INVERTER1"
 
-# Store data in 'files' or sqlite 'database' (*WIP*). Default: "files"
-STORE = "files"
+# Collector ID, default is '11'
+COLLECTOR_ID = "COLLECTOR11"
+
+# Offset hours to inverter timestamp
+TS_OFFSET = 7
+
+# Use both files and sqlite database to store json data (default)
+# Files and db size will be ~300MB per year
+# Disabling DB will slow down generating output html for plots and messages
+# If both are disabled only todays data is shown (untested)
+USE_FILES = True
+USE_DB = True
 
 # Base web directory for html files etc
-WEBDIR = "./www"
+WEBDIR = "./htdocs"
 
 # Do not show Messages and mask device serial etc in output, e.g. when serving web dir publicly 
 MASK = False
