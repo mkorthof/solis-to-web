@@ -40,7 +40,7 @@ Edit config\.py:
 
 Create solis.db: `uv run main.py --createdb`
 
-To import exiting json files into databas rune: `uv run main.py --importdb`
+To import exiting json files into databas run: `uv run main.py --importdb`
 
 ## Update
 
