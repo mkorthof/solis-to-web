@@ -7,23 +7,43 @@ import json
 import glob
 
 
-def plot_fields(device):
-    ''' Return plot fields,  '''
+''' Messages '''
+
+
+def collector_notification(payload):
+    ''' Get collector notification from paypload '''
     data = {}
-    fields = list(config.PLOTS) + ['E_MONTH', 'E_YEAR', 'E_TOTAL']
-    for f in fields:
-        data[f] = device[f] if device.get(f) else None
-    return(data)
+    try:
+        if payload:
+            payload_obj = json.loads(payload) if isinstance(payload, str) else payload
+            data = payload_obj['NOTIFICATION'][config.COLLECTOR_ID]
+    except (IndexError, KeyError):
+        pass
+    return data
 
 
-def inverter_ts(payload):
-    ''' Get device timestamp from current message payload '''
+def inverter_notification(payload):
+    ''' Get inverter notification from payload '''
+    data = {}
+    try:
+        if payload:
+            payload_obj = json.loads(payload) if isinstance(payload, str) else payload
+            if payload_obj.get('NOTIFICATION'):
+                data = payload_obj['NOTIFICATION'][config.INVERTER_ID] 
+    except (IndexError, KeyError):
+        pass
+    return data
+
+
+def inverter_timestamp(payload):
+    ''' Get inverter timestamp from payload '''
     data = None
     try:
-        payload = json.loads(payload)
-        inverter = payload['NOTIFICATION'][config.INVERTER_ID]
-        data = inverter['INVERTER_TIME']
-    except IndexError:
+        if payload:
+            payload_obj = json.loads(payload) if isinstance(payload, str) else payload
+            if inverter_notification(payload_obj):
+                data = inverter_notification(payload_obj)['INVERTER_TIME']
+    except (IndexError, KeyError):
         pass
     return(data)
 
