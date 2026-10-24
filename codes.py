@@ -33,7 +33,7 @@ def get_status(code):
         return(f'{code}, {status()[int(code)]}')
     except (KeyError, ValueError, TypeError):
         pass
-    return(code)
+    return code
 
 
 def get_error(code):
@@ -51,4 +51,4 @@ def get_error(code):
         return(f'Code {code}, {list(errors()[int(code)].values())}')
     except (KeyError, ValueError, TypeError):
         pass
-    return(code)
+    return code

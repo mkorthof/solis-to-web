@@ -13,12 +13,14 @@ import xlrd
 
 ''' Convert export from SolisCloud to json files '''
 
-''' Exporting:'''
-''' Goto Report > Inverter Report > Export, download file.xls and run ./cloud2json file.xls '''
 
+# Exporting:
+#   Goto Report > Inverter Report > Export
+#   Download file.xls
+#   Run ./cloud2json file.xls
 
-# Dir to save output json files. Default is ./www/json, e.g. to add any historical or missed local data.
-OUT_DIR = './www/json'
+# Dir to save output json files. Default is ./htdocs/json, e.g. to add any historical or missed local data.
+OUT_DIR = './htdocs/json'
 #OUT_DIR = './export'
 # Set to True to overwrite output files
 REPLACE_FILES = False
