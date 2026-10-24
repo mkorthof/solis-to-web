@@ -142,7 +142,7 @@ function json2Html(data, mask) {
 
 function showClose(){
     return `
-        <div class="close" style="float:right;position:fixed;top:10px;right:30px;">
+        <div class="close">
             <a href="#" onclick='document.getElementById("message").innerHTML = "";'>Close</a> [<a href="#" onclick='document.getElementById("message").innerHTML = "";'>x</a>]
         </div>
     `;
