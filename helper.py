@@ -1,120 +1,72 @@
 import config
 import message
-import db
-
 import datetime
 import glob
 import re
+
 import plot
 import web
 import os
 import shutil
 
 
-def fmt_date():
-    ''' Return current date and time '''
+''' Helper Functions '''
+
+
+def dt_obj(ts, offset=False):
+    ''' Return datetime obj '''
+    if offset:
+        return datetime.datetime.fromtimestamp(ts+3600*config.TS_OFFSET)
+    else:
+        return datetime.datetime.fromtimestamp(ts)
+
+
+def fmt_date_time():
+    ''' Return current date and time as string '''
     return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
-def fmt_datetime(ts, offset=False):
-    if offset:
-        return (datetime.datetime.fromtimestamp(ts+3600*config.TS_OFFSET))
-    else:
-        return (datetime.datetime.fromtimestamp(ts))
-
-
 def fmt_timestamp(ts, offset=False):
+    ''' Return timestamp as int '''
     if offset:
-        return (int(datetime.datetime.fromtimestamp(ts+3600*config.TS_OFFSET).timestamp()))
+        return int(datetime.datetime.fromtimestamp(ts+3600*config.TS_OFFSET).timestamp())
     else:
-        return (int(datetime.datetime.fromtimestamp(ts).timestamp()))
+        return int(datetime.datetime.fromtimestamp(ts).timestamp())
 
 
-def fn_now():
-    ''' Return dated filename.json '''
-    return (f'{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}-solis.json')
+def fmt_timestamp_now():
+    ''' Return current ts as int '''
+    return int(datetime.datetime.now().timestamp())
 
 
-def fn_date(period):
-    ''' Return date for period, used in glob for json files '''
-    if period == 'today':
-        return datetime.datetime.now().strftime("%Y%m%d")
-    elif period == 'yesterday':
-        return (datetime.datetime.now() - datetime.timedelta(days = 1)).strftime("%Y%m%d")
-    elif period == 'week':
-        return ''
-    elif period == 'month':
-        return ''
-    elif period == 'year':
-        return ''
-    elif period == 'this_month':
-        return (datetime.datetime.now().strftime("%Y%m"))
-    elif period == 'this_year':
-        return (datetime.datetime.now().strftime("%Y"))
+def fpath_today():
+    ''' Return date for today as str for file path '''
+    return datetime.datetime.now().strftime("%Y/%m/%d")
 
 
-# TODO: use new fn path format yyy/mm/dd/ts.json
-#       handle period week, month, year (resursive glob)
-#       add single def that takes 'period' and returns date pattern for both fn glob and db query
-
-def _fpath_date(period):
-    ''' Return date pattern for period, used in glob for json file and path '''
-    if period == 'today':
-        return datetime.datetime.now().strftime("%Y/%m/%d")
-    elif period == 'yesterday':
-        return (datetime.datetime.now() - datetime.timedelta(days = 1)).strftime("%Y/%m/%d")
-    elif period == 'week':
-        return ''
-    elif period == 'month':
-        #return (datetime.datetime.now().strftime("%Y/%m"))
-        return ''
-    elif period == 'year':
-        #return (datetime.datetime.now().strftime("%Y"))
-        return ''
-    elif period == 'this_month':
-        return (datetime.datetime.now().strftime("%Y/%m"))
-    elif period == 'this_year':
-        return (datetime.datetime.now().strftime("%Y"))
+def fpath_yesterday ():
+    ''' Return date for yesterday as str for file path '''
+    return (datetime.datetime.now() - datetime.timedelta(days = 1)).strftime("%Y/%m/%d")
 
 
-def db_date(period):
-    ''' Return date pattern used in db query '''
-    if period == 'now':
-        #return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        return int(datetime.datetime.now().timestamp())
-    elif period == 'today':
-        #return datetime.datetime.now().strftime("%Y-%m-%d")
-        return str(int(datetime.datetime.strptime(datetime.datetime.now().strftime("%Y-%m-%d"), "%Y-%m-%d").timestamp()))[:5]
-    elif period == 'yesterday':
-        #return (datetime.datetime.now() - datetime.timedelta(days = 1)).strftime("%Y-%m-%d")
-        return str(int(datetime.datetime.strptime((datetime.datetime.now() - datetime.timedelta(days = 1)).strftime("%Y-%m-%d"), "%Y-%m-%d").timestamp()))[:5]
-    elif period == 'week':
-        #return int(datetime.datetime.strptime(datetime.datetime.now().strftime("%Y"), "%Y").timestamp())
-        return ''
-    elif period == 'month':
-    #    #return (datetime.datetime.now().strftime("%Y-%m"))
-    #    return int(datetime.datetime.strptime(datetime.datetime.now().strftime("%Y-%m"), "%Y-%m").timestamp())
-        return ''
-    elif period == 'year':
-    #    #return (datetime.datetime.now().strftime("%Y"))
-    #    return int(datetime.datetime.strptime(datetime.datetime.now().strftime("%Y"), "%Y").timestamp())
-        return ''
-    elif period == 'this_month':
-    #    #return (datetime.datetime.now().strftime("%Y-%m"))
-        return int(datetime.datetime.strptime(datetime.datetime.now().strftime("%Y-%m"), "%Y-%m").timestamp())
-    elif period == 'this_year':
-    #    #return (datetime.datetime.now().strftime("%Y"))
-        return int(datetime.datetime.strptime(datetime.datetime.now().strftime("%Y"), "%Y").timestamp())
+# def fn_today():
+#     ''' Return "date-filename.json" as str '''
+#     return f'{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}-solis.json'
 
 
-def last_message(period):
-    ''' Return dict with prefix date and filename '''
-    try:
-        fn = max(glob.glob(f'{config.WEBDIR}/json/{fn_date(period)}*-solis.json'))
-        return({'pf': fn.split('/')[-1].split('-')[0],
-                'fn': fn.split('/')[-1]} if fn else None)
-    except IndexError as e:
-        print(f'ERROR: get last message filename - {e}')
+# def fn_yesterday():
+#    ''' Return "date-filename.json" for yesterday as str '''
+#     return f'{(datetime.datetime.now() - datetime.timedelta(days = 1)).strftime("%Y%m%d")}-solis.json'
+
+
+# def last_message(period):
+#     ''' Return dict with prefix date and filename '''
+#     try:
+#         fn = max(glob.glob(f'{config.WEBDIR}/json/{fn_date(period)}*-solis.json'))
+#         return({'pf': fn.split('/')[-1].split('-')[0],
+#                 'fn': fn.split('/')[-1]} if fn else None)
+#     except IndexError as e:
+#         print(f'ERROR: get last message filename - {e}')
 
 
 def is_days_ago(date, period):
