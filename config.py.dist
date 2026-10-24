@@ -39,18 +39,17 @@ TITLE = "☀️ Solis 2 Web"
 HEADER = '<img src="static/sun.svg" class="icon"> Solis 2 Web'
 
 # Show plot types on index page for today and yesterday, 
-INDEX_PLOT_TYPES = ['E_TODAY', 'APPARENT_POWER']
+INDEX_PLOT_TYPES = ['E_TODAY', 'DC_TOTALPOWER', 'APPARENT_POWER']
+
+# All available periods: 'today', 'yesterday', 'week', 'month', 'year', 'this_month', 'this_year'
+USE_PERIODS = ['today', 'yesterday', 'week', 'month', 'year']
 
 # Link to plots for these periods and types
-# All available periods: ['yesterday', 'week', 'month', 'year', 'this_month', 'this_year']
 LINK_PLOT_PERIODS = ['week', 'month', 'year']
-LINK_PLOT_TYPES = ['E_TODAY', 'APPARENT_POWER']
+LINK_PLOT_TYPES = ['E_TODAY', 'DC_TOTALPOWER']
 
 # Links to older messages
 LINK_PREVIOUS_MESSAGES = ['week', 'month', 'year' ]
-
-# Offset hours to invertor timestamp
-TS_OFFSET = 6
 
 # Create static files in web dir
 WEBSTATIC = True
@@ -63,24 +62,33 @@ WEBSTATIC_FILES = [
     "assets/img/collector.svg",
     "assets/img/electricity.svg",
     "assets/img/happy.svg",
+    "assets/img/apower.svg", 
     "assets/img/sun.svg",   
 ]
 
-# All available plots definitions. To add or remove plot completely, (un)comment it below.
-#   "field" gets y-axis values: { 'name' used in title, 'div' field values, 'unit' for y label and line 'color' }
-#    optional: 'num': [0-3] to select PV1-4 (default is 0) and 'disabled': True|False
+# Plots definitions
+#   "field" gets y-axis values: {
+#       'name' used in title,
+#       'div' divides field values (e.g. 1000 for W to kW),
+#       'unit' for y label,
+#       'color' for line,
+#       'num': [0-3] to select PV1-4, default is 0 (optional)
+#       'disabled': True|False, default is False (optional)
+#   }
 PLOTS = {
-    "APPARENT_POWER": { 'name': 'Total Inverter Power', 'div': 1000, 'unit': 'kW', 'color': 'red'},
-    "DC_TOTALPOWER": { 'name': 'DC Total Power', 'div': 1000, 'unit': 'kW', 'color': 'gray' },   # SolisCloud: DC Power PV1 (W)
+    "APPARENT_POWER": { 'name': 'Apparent Power', 'div': 1000, 'unit': 'VA', 'color': 'darkred'},
+    "DC_TOTALPOWER": { 'name': 'DC Total Power', 'div': 1000, 'unit': 'kW', 'color': 'red' },   # SolisCloud: DC Power PV1 (W)
     "REACTIVE_POWER": { 'name': 'Reactive Power', 'unit': 'Var', 'color': 'purple' },
-    "POWER_FACTOR": { 'name': 'Power Factor', 'unit': 'pf%', 'color': 'green' },
-    "E_TODAY": { 'name': 'Energy Yield', 'div': 10, 'unit': 'kWh', 'color': 'blue' },
+    "POWER_FACTOR": { 'name': 'Power Factor', 'unit': 'pf%', 'color': 'blue' },
+    "E_TODAY": { 'name': 'Energy Yield', 'div': 10, 'unit': 'kWh', 'color': 'green' },
     "U_PV": { 'name': 'DC Voltage PV', 'unit': 'V', 'color': 'brown', 'num': 0 },
     "I_PV": { 'name': 'DC Current PV', 'unit': 'A', 'color': 'orange', 'num': 0  },
     "U_MPPT": { 'name': 'DC Voltage MPPT ', 'unit': 'V', 'color': 'brown', 'num': 0  },
     "I_MPPT": { 'name': 'DC Current MPPT ', 'unit': 'A', 'color': 'orange', 'num': 0  },
     "U_AC": { 'name': 'AC Voltage', 'unit': 'V', 'color': 'brown', 'num': 0  },
     "I_AC": { 'name': 'AC Current', 'unit': 'A', 'color': 'orange', 'num': 0  },
-    "PAC": { 'name': 'AC Output Total Power', 'unit': 'kW', 'color': 'pink', 'disabled': True },
+    "PAC": { 'name': 'AC Output Total Power', 'unit': 'kW', 'color': 'hotpink', 'disabled': False},
     "FAC": { 'name': 'AC Frequency', 'unit': 'Hz', 'color': 'teal', 'disabled': True },
 }
+
+DEBUG = False
