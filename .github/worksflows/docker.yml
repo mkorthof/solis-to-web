@@ -1,0 +1,34 @@
+name: Docker build and push
+
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - '**'
+      - '!.github/**'
+      - '!.gitignore'
+      - '!README.md'
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  docker-images:
+    name: Build Docker image and push to repository
+    runs-on: debian-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Login to Github Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build web image
+        run: ./docker-build.sh
+      - name: Push image
+        run: |
+          docker pushghcr.io/mkorthof/solis-to-web:latest
