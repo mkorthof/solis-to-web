@@ -1,4 +1,4 @@
-# Solis to Web
+# Solis 2 Web
 
 *Gets Solis Inverter data and stores as web pages*
 
@@ -6,7 +6,7 @@ Tested with [Solis 4G Mini Inverter](https://www.solisinverters.au/product_detai
 
 - Uses [MQTT](https://mqtt.org), subscribes to inverters 'update' topic and gets messages with [Paho](https://eclipse.dev/paho)
 - Messages are stored as json files
-- Creates index.html showing yield, power, etc and graphs with [Plotly](https://plotly.com/python)
+- Creates index.html showing yield, power, etc graphs with [Plotly](https://plotly.com/python)
 - SolisCloud not needed, data stays local 
 
 ## Requirements
@@ -30,12 +30,25 @@ If config\.py does not exist yet, copy defaults from config.py.dist to config\.p
 Edit config\.py:
 
 - set `BROKER_HOST`
-- (optionally) set auth with `BROKER_USERNAME` and `BROKER_PW`, remove settings to disable
+- (optionally) set auth with `BROKER_USERNAME` and `BROKER_PASSWORD`, remove settings to disable
 - change `TOPIC` to your device serial number
+- change TS_OFFSET to match your timezone
 
-Remeber check for config changes after updating (see [commits](https://github.com/mkorthof/solis-to-web/commits/master/))
+*NOTE: Environment variables will overwrite config settings*
 
-*NOTE: Environment vars will overwrite config settings*
+## Database
+
+Create solis.db: `uv run main.py --createdb`
+
+To import exiting json files into databas rune: `uv run main.py --importdb`
+
+## Update
+
+Remember check for config changes after updating (see [commits](https://github.com/mkorthof/solis-to-web/commits/master/)).
+
+To convert to new json path and files, use `uv run main.py --convertfn`
+
+This will move `YYYYmmdd_MMHHSS_solis.json` files to `YYYY/mm/d/timestamp.json`
 
 ## Running
 
@@ -47,9 +60,13 @@ Output html and json files are stored in 'www' dir (optionally use e.g. NGINX to
 
 ## uv
 
-Run in background and log to solis.log: `./run.sh`
+Run in background and log to solis.log: `./run.sh start`
 
 To run in foreground: `uv run main.py`
+
+## systemd
+
+TODO
 
 ## docker
 

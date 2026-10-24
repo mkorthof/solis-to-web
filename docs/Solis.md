@@ -14,11 +14,10 @@ WORKMODE: The current operating status code of the logger (e.g., 16).
 
 # Inverter
 
-APPARENT_POWER: Refers to the total power flowing through your electrical system (measured in Volt-Amperes, or VA). It is the combination of Active Power (the actual usable power, measured in Watts) and Reactive Power (unused, circulating power).
+DC_TOTALPOWER: The total direct current (DC) power generated, measured in Watts (W). It shows the total electrical power supplied to the inverter by your solar panels before any power conversion takes place. It measures the raw, direct current power entering the inverter from your solar panels. This tells you exactly how well your solar panels are performing under the current sunlight conditions. Input from solar panels. 
 
-DC_TOTALPOWER: The total direct current (DC) power generated, measured in Watts (W). It shows the total electrical power supplied to the inverter by 
-your solar panels before any power conversion takes place.
-f
+APPARENT_POWER: Refers to the total power flowing through your electrical system (measured in Volt-Amperes, or VA). It is the combination of Active Power (the actual usable power, measured in Watts) and Reactive Power (unused, circulating power). It measures the total alternating current capacity the inverter is delivering to your home or the grid. Output to home/grid.
+
 REACTIVE_POWER: Is managed to stabilize the local electrical grid and correct voltage fluctuations. It is measured in VARs (Volt-Amperes Reactive) and works by adjusting the power factor (the phase alignment between grid voltage and current) so the inverter can either generate or absorb power as needed
 
 PAC: The active output power of the inverter, measured in kiloWatts. This is the actual electricity currently generated and fed into your home or the power grid (kW)
