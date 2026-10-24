@@ -137,7 +137,7 @@ def data_yesterday(data):
     ''' Return yesterdays yield '''
     #return [vals['E_TODAY'] for _, vals in message.get('yesterday').items()][0]
     return list(data['yesterday'].values())[-1] if data.get('yesterday') else {}
-    
+
 def webdirs():
     ''' Create dirs and copy static files '''
     if not os.path.isdir(f'{config.WEBDIR}'):
