@@ -16,6 +16,8 @@ import/
 export/
 web/
 www/
+html/
+htdocs/
 config.py
 solis.pid
 solis.log
