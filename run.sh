@@ -37,8 +37,10 @@ func_run() {
 }
 
 func_kill() {
-    pkill -F solis.pid  || { "ERROR: could not kill service"; exit 1; }
-    rm -f solis.pid
+    if [ -s "solis.pid" ]; then
+        pkill -F solis.pid  || { "ERROR: could not kill service"; exit 1; }
+        rm -f solis.pid
+    fi
     PID=""
 }
 
