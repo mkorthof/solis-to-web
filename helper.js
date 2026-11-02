@@ -1,76 +1,70 @@
 // Solis JS helper functions
 
-function lastUpdated(date) {
-    let now = Date.now();
-    let time = new Date(date).getTime();
-    let sec = (now - time) / 1000 || -1;
+function lastUpdated(date_str) {
     let text;
-    if (sec > 3600) {
+    let time = new Date(date_str).getTime();
+    let now = Date.now();
+    let sec = (now - time) / 1000 || null;
+    //console.log('DEBUG: lastUpdated now time sec', now, time, sec)
+    //console.log('DEBUG: lastUpdated test sec', (sec < 0), (sec >= -3), (sec <= -1), (sec >= -3 && sec <= -1))
+    if (Number.isNaN(sec) || sec === null) {
+        text = "-";
+    }
+    else if (sec > 3600) {
         text = (sec/60/60).toFixed(0) + ' hours ago';
     } else if (sec > 60) { 
         text = (sec/60).toFixed(0) + ' minutes ago';
+    } else if (sec >= -3 && sec <= -1) { 
+        text = ' 0 seconds ago';
+    } else if (sec < -3) {
+        text = sec.toFixed(0) + ' seconds ago (‼️time desync)';
     } else { 
         text = sec.toFixed(0) + ' seconds ago';
-    }
-    if (sec < 0)  {
-        //console.log('DEBUG: lastUpdated - time not in sync (sec < 0)')
-        text += ' (‼️time desync) ';
     }
     document.getElementById('updated').innerText = text;
 }
 
 function jsonType(jsonString) {
-    jsonString = jsonString.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    return jsonString.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
-      let type = 'number';
-      if (/^"/.test(match)) {
-          if (/:$/.test(match)) {
-              type = 'key';
-          } else {
-              type = 'string';
-          }
-      } else if (/true|false/.test(match)) {
-          type = 'boolean';
-      } else if (/null/.test(match)) {
-          type = 'null';
-      }
-    return `<span class="${type}">${match}</span>`;
-  });
+    jsonString = jsonString.replaceAll('&', '&amp;').replaceAll('/', '&lt;').replaceAll('>', '&gt;');
+    return jsonString.replace(/("(?:\\.|[^"\\])*"(?:\s*:)?|\b(?:true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g, function (match) {
+        let type = 'number';
+        if (match.startsWith('"')) {
+            if (match.endsWith(':')) {
+                type = 'key';
+            } else {
+                type = 'string';
+            }
+        } else if (/true|false/.test(match)) {
+            type = 'boolean';
+        } else if (/null/.test(match)) {
+            type = 'null';
+        }
+        return `<span class="${type}">${match}</span>`;
+    });
 };
 
 
 // from https://gist.github.com/Kvit/df8a04e84a2b56b1dda10dd6d42b9b30
 const jsonSearch = (obj, searchKey, replaceValue, results = []) => {
-    const r = results;
-    // if this is array, iterate elements
     if (Array.isArray(obj)) {
-        //console.log("DEBUG: jsonSearch - ARRAY LENGTH ", obj.length);
         for (const element of obj) {
-            // console.log("DEBUG: jsonSearch -- searching array element: ");
-            jsonSearch(element, searchKey, r);
+            jsonSearch(element, searchKey, replaceValue, results);
         }
-    // if this is object, iterate keys
-    } else if (typeof obj === "object") {
-        for (let key in obj) {
-            let value = obj[key];
-            // add matching key to results
-            if (key === searchKey) {
-                obj[key] = replaceValue;
-                // Optional: unbox array of one
-                if (Array.isArray(value) && value.length === 1) value = value[0];
-                r.push(value);
-            }
-            const keyType = typeof obj[key];
-            //console.log("DEBUG: jsonSearch - key: ", key, " / type: ", keyType);
-            // look inside objects
-            if (keyType === "object") {
-                //console.log("DEBUG: jsonSearch - searching inside object: ", key);
-                jsonSearch(value, searchKey, r);
-            }
+        return obj;
+    }
+    if (obj === null || typeof obj !== "object") {
+        return obj;
+    }
+    for (const [key, value] of Object.entries(obj)) {
+        if (key === searchKey) {
+            obj[key] = replaceValue;
+            results.push(Array.isArray(value) && value.length === 1 ? value[0] : value);
+        }
+        if (value !== null && typeof value === "object") {
+            jsonSearch(value, searchKey, replaceValue, results);
         }
     }
-  //return r;
-  return obj
+    return obj;
 };
 
 function prettyPrintJSON(json, mask) {
@@ -103,35 +97,34 @@ function flattenObject(obj, prefix = '') {
     }, {});
 };
 
+function formatHtmlValue(key, value, mask) {
+    if (typeof value === 'string') {
+        if (mask) {
+            value = value.replace(/^[A-Z0-9]{10}/, '***');
+        }
+        return '"' + value + '"';
+    }
+    if (typeof value === 'number' && key.endsWith('IP') && mask) {
+        return '***';
+    }
+    return value;
+}
+
 function json2Html(data, mask) {
     let html = showClose()
     html += `
         <table>
             <tr>
-                <th></th>
+                <th>Name</th>
                 <th>Value</th>
             </tr>`;
-    for (let [k, v] of Object.entries(flattenObject(data))) { 
-        if (k) {
-            if (typeof v == 'string') {
-                if (mask) {
-                    v = v.replace(/^[A-Z0-9]{10}/, '***');
-                };
-                v = '"' + v + '"'
-            }
-            if (typeof v == 'number') {
-                if (k.endsWith('IP')) { 
-                    if (mask) {
-                        v = '***';
-                    }
-                }
-            }
-            html += `
+    for (let [k, v] of Object.entries(flattenObject(data))) {
+        if (!k) continue;
+        html += `
                 <tr>
                     <td>${k}</td>
-                    <td>${v}</td>
+                    <td>${formatHtmlValue(k, v, mask)}</td>
                 </tr>`;
-        };
     };
     html += '</table>';
     document.getElementById('message').innerHTML = html;
