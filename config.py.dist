@@ -31,9 +31,6 @@ USE_DB = True
 # Base web directory for html files etc
 WEBDIR = "./htdocs"
 
-# Do not show Messages and mask device serial etc in output, e.g. when serving web dir publicly 
-MASK = False
-
 # Title of html pages
 TITLE = "☀️ Solis 2 Web"
 HEADER = '<img src="static/sun.svg" class="icon"> Solis 2 Web'
