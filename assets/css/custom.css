@@ -31,20 +31,14 @@ header a {
     color: darkmagenta;
 }
 
-#more {
-     text-decoration: underline;
-}
-
 @media (prefers-color-scheme: dark) {
   :root {
     .plot-container {
         filter: invert(75%) hue-rotate(180deg);
         background-color: white;
     }
-    /*
-    .main-svg {
+    __.main-svg {
         background: rgba(0, 0, 0, 0);
     }
-    */
   }
 }

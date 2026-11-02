@@ -12,6 +12,7 @@ import xlrd
 
 
 ''' Convert export from SolisCloud to json files '''
+''' e.g. to add any historical or missed local data '''
 
 
 # Exporting:
@@ -19,14 +20,13 @@ import xlrd
 #   Download file.xls
 #   Run ./cloud2json file.xls
 
-# Dir to save output json files. Default is ./htdocs/json, e.g. to add any historical or missed local data.
-OUT_DIR = './htdocs/json'
-#OUT_DIR = './export'
+# Dir to save output json files. Default is ./htdocs/json
+#OUT_DIR = './htdocs/json'
+OUT_DIR = './export'
 # Set to True to overwrite output files
 REPLACE_FILES = False
 # Skip 7 row header
 SKIP_ROWS = 8
-
 
 FIELDS = {
     #idx: "JSON key": "Column title"
@@ -54,22 +54,26 @@ FIELDS = {
 }
 
 
-FILE = sys.argv[1]
+try:
+    FILE = sys.argv[1]
+except IndexError:
+    print("USAGE ./cloud2json.py file.xls")
+    sys.exit(1)
 
 
 def to_number(value):
     return(int(value.replace(',', '')))
 
 
-def get_time(value):
+def get_dt(value):
     ''' Convert date time '''   
     ''' Return timestamp and filedate '''
     try:
         dt_obj = datetime.datetime.strptime(value, '%d/%m/%Y %H:%M:%S (%Z%z)')
+        print(dt_obj)
         ts = int(dt_obj.strftime("%s"))
-        fdate = dt_obj.strftime("%Y%m%d_%H%M%S")
-        fpattern = dt_obj.strftime("%Y%m%d_%H")
-        return [ts, fdate, fpattern]
+        fpath = dt_obj.strftime("%Y/%m/%d")
+        return [fpath, ts]
     except Exception:
         pass
     return None
