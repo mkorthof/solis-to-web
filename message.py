@@ -1,8 +1,8 @@
-import config
 import db
 import helper
 
 import datetime
+import config
 import json
 import glob
 
@@ -28,8 +28,7 @@ def inverter_notification(payload):
     try:
         if payload:
             payload_obj = json.loads(payload) if isinstance(payload, str) else payload
-            if payload_obj.get('NOTIFICATION'):
-                data = payload_obj['NOTIFICATION'][config.INVERTER_ID] 
+            data = payload_obj['NOTIFICATION'][config.INVERTER_ID]
     except (IndexError, KeyError):
         pass
     return data
@@ -67,7 +66,7 @@ def fpath_pattern(period):
 
 def dt_pattern(period):
     ''' Return datetime pattern used in db query '''
-    if config.DEBUG:
+    if bool(config.DEBUG) and int(config.DEBUG_LEVEL > 1):
         print('DEBUG dt_pattern',
             'date time (offset)',
             datetime.datetime.fromtimestamp(datetime.datetime.now().timestamp()+3600*config.TS_OFFSET).strftime("%Y-%m-%d %H:%M"),
@@ -78,11 +77,11 @@ def dt_pattern(period):
             'yesterday (offset)',
             (datetime.datetime.fromtimestamp(datetime.datetime.now().timestamp()+3600*config.TS_OFFSET) - datetime.timedelta(days = 1)).strftime("%Y-%m-%d")
         )
+    # use offset
+    #   if period == 'today': #return(datetime.datetime.fromtimestamp(datetime.datetime.now().timestamp()+3600*config.TS_OFFSET).strftime("%Y-%m-%d"))
+    #   elif period == 'yesterday': return (datetime.datetime.fromtimestamp(datetime.datetime.now().timestamp()+3600*config.TS_OFFSET) - datetime.timedelta(days = 1)).strftime("%Y-%m-%d")
     if period == 'today': return datetime.datetime.now().strftime("%Y-%m-%d")
     elif period == 'yesterday': return (datetime.datetime.now() - datetime.timedelta(days = 1)).strftime("%Y-%m-%d")
-    # use offset
-    # if period == 'today': #return(datetime.datetime.fromtimestamp(datetime.datetime.now().timestamp()+3600*config.TS_OFFSET).strftime("%Y-%m-%d"))
-    # elif period == 'yesterday': return (datetime.datetime.fromtimestamp(datetime.datetime.now().timestamp()+3600*config.TS_OFFSET) - datetime.timedelta(days = 1)).strftime("%Y-%m-%d")
     elif period == 'this_month':
         return datetime.datetime.now().strftime("%Y-%m")
     elif period == 'this_year':
@@ -124,8 +123,8 @@ def pattern_from_date():
     #    months = '{' + ','.join(months) + '}'
     #else:
     #    months = months[0]
-    #print(f'{config.WEBDIR}/json/{years}/{months}/*/*.json')
-    #print(glob.glob(f'{config.WEBDIR}/json/{years}/{months}/*/*.json', recursive=True)
+    #print(f'{config.WEBDIR}/{config.JSONDIR}{years}/{months}/*/*.json')
+    #print(glob.glob(f'{config.WEBDIR}/{config.JSONDIR}{years}/{months}/*/*.json', recursive=True)
     #print(tmp)
     #print('DEBUG: fpath_date week', unique_dates)
     #print('DEBUG: fpath_date week', unique_years)
@@ -157,10 +156,10 @@ def check_fn_ts(period, fn):
 
 
 # TODO: move glob to write_data() and change to **/*.json + check ts for 1 year ago
-def read_files(period):
+def read_files(fpath, period=None):
     data = {}
-    for fn in sorted(glob.glob(f'{config.WEBDIR}/json/{fpath_pattern(period)}/*.json', recursive=True), reverse=True):
-        if config.DEBUG:
+    for fn in sorted(glob.glob(f'{config.WEBDIR}/{config.JSONDIR}{fpath}/*.json', recursive=True), reverse=True):
+        if bool(config.DEBUG):
             print(f'DEBUG: read_files period={period} fn={fn}')
         try:
             with open(fn, 'r', encoding='utf-8', errors='ignore') as f_json:
@@ -171,66 +170,73 @@ def read_files(period):
                     continue
                 payload_obj = json.loads(payload)
                 dt = helper.dt_obj(inverter_ts, True)
-                if (period in ['today', 'yesterday', 'week', 'month', 'year'] and not helper.is_days_ago(dt, period)):
+                if period and period in ['today', 'yesterday', 'week', 'month', 'year'] and not helper.is_days_ago(dt, period):
                     continue
                 data[dt] = payload_obj
                 data[dt]['fn'] = fn.removeprefix('./').split('/', 1)[1]
-            except (KeyError, IndexError) as e:
+            except (KeyError, IndexError):
+                #print(f'ERROR: read file fn={fn} ts={ts}', e)
                 pass
         except json.decoder.JSONDecodeError as e:
             print(f'ERROR: decoding JSON from file "{fn}" - "{e}"')
     return data
 
 
-# TODO: speed up globbing json files [dt]['fn'] -- turned off for now, getting fpath from timestamp instead
-def db_query(period, path=None, key=None):
+# TODO: speed up globbing json files [dt]['fn'] -- turned off for now,
+#        getting fpath from timestamp instead
+def db_query(period):
     ''' Query database '''
     data = {}
-    if path:
-        result = db.query_ts_json_path(f'{dt_pattern(period)}%', f'$.NOTIFICATION.{config.INVERTER_ID}', key)
-    else:
-        result = db.query_dt(f'{dt_pattern(period)}%')
-    print('DEBUG: db_query messages_below_limit', period, len(result), f'{dt_pattern(period)}%', messages_below_limit(period, len(result)))
-    if (period in config.USE_PERIODS and not messages_below_limit(period, len(result))):
+    result = db.query_dt(f'{dt_pattern(period)}%')
+    if bool(config.DEBUG):
+        print('DEBUG: db_query messages_below_limit', period, len(result), f'{dt_pattern(period)}%', messages_below_limit(period, len(result)))
+    if period in config.PERIODS and not messages_below_limit(period, len(result)):
         return data
-    for localtime, timestamp, payload in result:
-        #print('DEBUG: db_query', period, localtime, timestamp, payload)
-        #exit(0)
+    for timestamp, payload in result:
+        if bool(config.DEBUG) and int(config.DEBUG_LEVEL > 1):
+            print('DEBUG: db_query', period, timestamp, payload)
+            #exit(0)
         try:
-            if not timestamp:
-                continue
-            if not payload:
+            if not timestamp or not payload:
                 continue
             inverter_ts = inverter_timestamp(payload)
             if not inverter_ts:
                 continue
             payload_obj = json.loads(payload)
             dt = helper.dt_obj(inverter_ts, True)
-            if (period in config.USE_PERIODS and not helper.is_days_ago(dt, period)):
+            if (period in config.PERIODS and not helper.is_days_ago(dt, period)):
                 continue
-            if key:
-                data[dt] = {key: payload}
-            else:
-                data[dt] = payload_obj
-                data[dt]['fn'] = f'json/{dt.strftime("%Y/%m/%d")}/{timestamp}.json'
-                #glob_result = glob.glob(f'{config.WEBDIR}/json/*/*/*/{str(timestamp)[:7]}*.json')
-                #fn = max(glob_result) if glob_result else f'json/{dt.strftime("%Y/%m/%d")}/{timestamp}.json'
-                #data[dt]['fn'] = fn.removeprefix('./').split('/', 1)[1]
-                if config.DEBUG:
-                    print('DEBUG: db_query fn', period, timestamp, data[dt]['fn'])
-                    #print('DEBUG: db_query glob', period, timestamp, str(timestamp)[:8], glob_result[0], data[dt]['fn'])
-        except (KeyError, IndexError) as e:
+            data[dt] = payload_obj
+            data[dt]['fn'] = f'{config.JSONDIR}/{dt.strftime("%Y/%m/%d")}/{timestamp}.json'
+            #glob_result = glob.glob(f'{config.WEBDIR}/{config.JSONDIR}*/*/*/{str(timestamp)[:7]}*.json')
+            #fn = max(glob_result) if glob_result else f'{config.JSONDIR}}/{dt.strftime("%Y/%m/%d")}/{timestamp}.json'
+            #data[dt]['fn'] = fn.removeprefix('./').split('/', 1)[1]
+            if bool(config.DEBUG) and int(config.DEBUG_LEVEL > 1):
+                print('DEBUG: db_query fn', period, timestamp, data[dt]['fn'])
+                #print('DEBUG: db_query glob', period, timestamp, str(timestamp)[:8], glob_result[0], data[dt]['fn'])
+        except (KeyError, IndexError):
             pass
     return data
+
+
+# TODO:
+#def db_query_key(period):
+#, path=None, key=None
+#    if path:
+#        result = db.query_ts_json_path(f'{dt_pattern(period)}%', f'$.NOTIFICATION.{config.INVERTER_ID}', key)
+#    if key:
+#        data[dt] = {key: payload}
 
 
 def get(period):
     ''' Get json data from files or db '''
     data = {}
     if period:
-        #print(f'DEBUG: message get period={period} fpath_pattern={fpath_pattern(period)} dt_pattern={dt_pattern(period)}')
-        if config.USE_DB:
+        if config.USE_DATABASE:
             data = db_query(period)
-        elif config.USE_FILES:
-            data = read_files(period)
+        elif config.STORE_FILES:
+            #if bool(config.DEBUG):
+            #    print(f'DEBUG: message.get period={period} fpath_pattern={fpath_pattern(period)} dt_pattern={dt_pattern(period)}')
+            fpath = fpath_pattern(period)
+            data = read_files(fpath, period)
     return data
