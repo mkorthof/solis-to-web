@@ -101,13 +101,13 @@ def get_error(value):
     return None
 
 
-def write_json(fpattern, fn, fmt_json_row):
-    for p in pathlib.Path(OUT_DIR, '/').glob(f'{fpattern}*'):
+def write_json(fpath, fpattern, fn, fmt_json_row):
+    for p in pathlib.Path(f'{OUT_DIR}/{fpath}').glob(f'{fpattern}'):
         if pathlib.Path.is_file(p) and not REPLACE_FILES:
             print(f'File "{p}" already exists, skipping ... ')
             return
-    print(f'Writing "{fn}" ...')
-    with open(f'{OUT_DIR}/{fn}', 'w', encoding='utf-8', errors='ignore') as f_json:
+    os.makedirs(f'{OUT_DIR}/{fpath}', exist_ok=True)
+    with open(f'{OUT_DIR}/{fpath}/{fn}', 'w', encoding='utf-8', errors='ignore') as f_json:
         json.dump(fmt_json_row, f_json)
 
 
@@ -123,11 +123,10 @@ def xls2json():
                 'INVERTER1': {}
             }
         }
+        fpath = None
         ts = None
-        fdate = None
-        fpattern = None
         if row_values[1]:
-            ts, fdate, fpattern = get_time(row_values[1])
+            fpath, ts = get_dt(row_values[1])
             fmt_json_row['NOTIFICATION']['INVERTER1']['INVERTER_TIME'] = ts
         if row_values[2]:        
             fmt_json_row['NOTIFICATION']['INVERTER1']['CURRENT_STATE'] = get_state(row_values[2])
@@ -150,8 +149,8 @@ def xls2json():
                     value = row_values[i]
                 #print('DEBUG: float', key, ":", row_values[i], '->', value)
                 fmt_json_row['NOTIFICATION']['INVERTER1'][key] = value
-        if fpattern and fdate:
-            write_json(fpattern, f'{fdate}-solis.json', fmt_json_row)
+        if fpath and ts:
+            write_json(fpath, f'{(str(ts))[:8]}*.json', f'{ts}.json', fmt_json_row)
         else:
             print(f'ERROR: {row_values}')
 
@@ -170,11 +169,10 @@ def csv2json():
                     'INVERTER1': {}
                 }
             }
+            fpath = None
             ts = None
-            fdate = None
-            fpattern = None
             if row[1]:
-                ts, fdate,fpattern = get_time([row[1]])
+                fpath, ts = get_dt([row[1]])
                 fmt_json_row['NOTIFICATION']['INVERTER1']['INVERTER_TIME'] = to_number(ts)
             if row[2]:
                 fmt_json_row['NOTIFICATION']['INVERTER1']['CURRENT_STATE'] = get_state([row[2]])
@@ -190,19 +188,24 @@ def csv2json():
                         value = row[i]
                     fmt_json_row['NOTIFICATION']['INVERTER1'][next(iter(FIELDS[i].keys()))] = value
                 i = 1+i
-            #print('DEBUG:', fn, fmt_json_row)
-            if fpattern and fdate:
-                write_json(fpattern, f'{fdate}-solis.json', fmt_json_row)
+            if fpath and ts:
+                write_json(fpath, f'{str(ts)[:8]}*.json', f'{ts}.json', fmt_json_row)
             else:
                 print(f'ERROR: {row}')
         r = r+1
 
 
 def main():                    
+    if not os.path.isfile(FILE):
+        print("ERROR: import file not found")
+        sys.exit(1)
     if os.path.splitext(FILE)[1] == '.xls':
         xls2json()
-    if os.path.splitext(FILE)[1] == '.csv':
+    elif os.path.splitext(FILE)[1] == '.csv':
         csv2json()
+    else:
+        print("ERROR: need xls or csv file to import")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
