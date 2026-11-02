@@ -83,32 +83,42 @@ def on_message(client, userdata, message):
     print(f'{helper.fmt_date_time()} INFO: Received payload (size={len(payload)}) {payload}')
     ts = inverter_timestamp(payload) if inverter_timestamp(payload) else helper.fmt_timestamp_now()
     helper.webdirs()
-    if config.USE_FILES:
-        os.makedirs(f'{config.WEBDIR}/json/{helper.fpath_today()}', exist_ok=True)
-        with open(f'{config.WEBDIR}/json/{helper.fpath_today()}/{ts}.json', 'w', encoding='utf-8', errors='ignore') as f:
+    if config.STORE_FILES:
+        os.makedirs(f'{config.WEBDIR}/{config.JSONDIR}/{helper.fpath_today()}', exist_ok=True)
+        with open(f'{config.WEBDIR}/{config.JSONDIR}/{helper.fpath_today()}/{ts}.json', 'w', encoding='utf-8', errors='ignore') as f:
             f.write(payload)
-    if config.USE_DB:
+    if config.USE_DATABASE:
         db.insert(ts, payload)
-    helper.write_data(payload)
+    with open(f'{config.WEBDIR}/index.html', 'w', encoding='utf-8', errors='ignore') as f:
+        f.write(web.index_html(helper.set_index_values(payload, {})))
+    message_queue.put(message)
+    print(f'{helper.fmt_date_time()} INFO: Enqueued message from topic: "{message.topic}"\n')
 
 
 def test(period):
-    # fn = f'{config.WEBDIR}/json/{helper.last_message(period)["pf"]}-solis.json'
+    if not check_config():
+        print('ERROR: invalid broker and/or topic setting')
+        sys.exit(1)
+    # fn = f'{config.WEBDIR}/{config.JSONDIR}/{helper.last_message(period)["pf"]}-solis.json'
     # fn = f'export/20260708_180444-solis.json'
-    #print(f'{config.WEBDIR}/json/{helper.fn_date(period)}*/*.json')
+    #print(f'{config.WEBDIR}/{config.JSONDIR}/{helper.fn_date(period)}*/*.json')
     if period == 'today':
         print(f'TEST: fpath_today {helper.fpath_today()}')
-        fn = max(sorted(glob.glob(f'{config.WEBDIR}/json/{helper.fpath_today()}/*.json', recursive=True)))
+        try:
+            fn = max(sorted(glob.glob(f'{config.WEBDIR}/{config.JSONDIR}/{helper.fpath_today()}/*.json', recursive=True)))
+        except ValueError as e:
+            print(f'TEST: "{e}" - try yesterday?')
+            sys.exit(1)
     elif period == 'yesterday':
         print(f'TEST: fpath_today {helper.fpath_yesterday()}')
-        fn = max(sorted(glob.glob(f'{config.WEBDIR}/json/{helper.fpath_yesterday()}/*.json', recursive=True)))
+        fn = max(sorted(glob.glob(f'{config.WEBDIR}/{config.JSONDIR}/{helper.fpath_yesterday()}/*.json', recursive=True)))
     ts = None
     #print(f'TEST: using "{fn}"')
     with open(f'{fn}', 'r', encoding='utf-8', errors='ignore') as f:
         payload = f.read()
         ts = inverter_timestamp(payload) if inverter_timestamp(payload) else helper.fmt_timestamp_now()
     print(f'TEST: ts={helper.fmt_timestamp(ts)} offset={helper.fmt_timestamp(ts, True)} dt_obj="{helper.dt_obj(ts)}" offset="{helper.dt_obj(ts, True)}"')
-    #print(f'TEST: makedirs {config.WEBDIR}/json/{helper.fpath_today()}')
+    #print(f'TEST: makedirs {config.WEBDIR}/{config.JSONDIR}/{helper.fpath_today()}')
     config.HEADER = (f'<pre style=font-size:0.5em>TEST: "{fn}"</pre>') + ''.join(config.HEADER)
     helper.webdirs()
     helper.write_data(payload)
@@ -158,26 +168,47 @@ if '--test' in sys.argv:
     sys.exit(0)
 
 
-if '--createdb' in sys.argv:
+if '--create-db' in sys.argv:
     db.create_table()
     sys.exit(0)
 
 
-if '--importdb' in sys.argv:
-    db.import_json()
+if '--import-db' in sys.argv:
+    try:
+        fpath = sys.argv[2]
+    except IndexError:
+        fpath = '**'
+    for ts, payload in read_files(fpath).items():
+        # TEST: to replace ts, use db.replace()
+        db.insert(ts, payload)
     sys.exit(0)
 
 
-if '--convertfn' in sys.argv:
+if '--delete-db' in sys.argv:
+    try:
+        fpath = sys.argv[2]
+    except IndexError:
+        print('ERROR: need path to json')
+        sys.exit(0)
+    for ts in read_files(fpath).keys():
+        # TEST: to actually delete, use db.delete_ts()
+        print(int(ts.totimestamp()))
+        #print(db.query_ts(int(ts.totimestamp())))
+    sys.exit(0)
+
+
+if '--convert-files' in sys.argv:
     apply = False
     if '--apply' in sys.argv:
         apply = True
     helper.conv_fn(apply)
+    if not apply:
+        print('\nINFO: convert dry-run mode, rerun with "--apply" to actually move files')
     sys.exit(0)
 
 
 if '-h' in sys.argv or '--help' in sys.argv:
-    print(f'./{sys.argv[0]} [---test|--createdb|--importdb|--help]')
+    print(f'USAGE: ./{sys.argv[0]} [--test|--create-db|--import-db|--convert-files|]')
     sys.exit(0)
 
 if __name__ == "__main__":
