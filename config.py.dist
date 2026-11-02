@@ -22,36 +22,35 @@ COLLECTOR_ID = "COLLECTOR11"
 TS_OFFSET = 7
 
 # Use both files and sqlite database to store json data (default)
-# Files and db size will be ~300MB per year
 # Disabling DB will slow down generating output html for plots and messages
 # If both are disabled only todays data is shown (untested)
-USE_FILES = True
-USE_DB = True
+STORE_FILES = True
+USE_DATABASE = True
+# SQLite db file, default "solis.db"
+FN_DB = "solis.db"
 
-# Base web directory for html files etc
+# Base web directory for html files etc and subdirs
 WEBDIR = "./htdocs"
+JSONDIR = "json"
+PLOTDIR = "plot"
 
 # Title of html pages
 TITLE = "☀️ Solis 2 Web"
 HEADER = '<img src="static/sun.svg" class="icon"> Solis 2 Web'
 
-# Show plot types on index page for today and yesterday, 
+# Select periods to use for plots and messages.
+# Available: 'today', 'yesterday', 'week', 'month', 'year', 'this_month', 'this_year'
+PERIODS = ['today', 'yesterday', 'week', 'month', 'year']
+
+# Generate plots for periods using these types
+PLOT_TYPES = ['E_TODAY', 'DC_TOTALPOWER']
+
+# Set plots on index page to always show unfolded
 INDEX_PLOT_TYPES = ['E_TODAY', 'DC_TOTALPOWER', 'APPARENT_POWER']
-
-# All available periods: 'today', 'yesterday', 'week', 'month', 'year', 'this_month', 'this_year'
-USE_PERIODS = ['today', 'yesterday', 'week', 'month', 'year']
-
-# Link to plots for these periods and types
-LINK_PLOT_PERIODS = ['week', 'month', 'year']
-LINK_PLOT_TYPES = ['E_TODAY', 'DC_TOTALPOWER']
-
-# Links to older messages
-LINK_PREVIOUS_MESSAGES = ['week', 'month', 'year' ]
 
 # Create static files in web dir
 WEBSTATIC = True
-
-# Files in {WEBDIR}/static. If you set WEBSTATIC to False you'll have manually copy them.
+# Files in WEBDIR/static. If you set WEBSTATIC to False you'll have manually copy them.
 WEBSTATIC_FILES = [
     "helper.js",
     "assets/css/simple.css",
@@ -72,9 +71,10 @@ WEBSTATIC_FILES = [
 #       'num': [0-3] to select PV1-4, default is 0 (optional)
 #       'disabled': True|False, default is False (optional)
 #   }
+ # SolisCloud:  DC_TOTALPOWER is 'DC Power PV1 (W)'
 PLOTS = {
     "APPARENT_POWER": { 'name': 'Apparent Power', 'div': 1000, 'unit': 'VA', 'color': 'darkred'},
-    "DC_TOTALPOWER": { 'name': 'DC Total Power', 'div': 1000, 'unit': 'kW', 'color': 'red' },   # SolisCloud: DC Power PV1 (W)
+    "DC_TOTALPOWER": { 'name': 'DC Total Power', 'div': 1000, 'unit': 'kW', 'color': 'red' },
     "REACTIVE_POWER": { 'name': 'Reactive Power', 'unit': 'Var', 'color': 'purple' },
     "POWER_FACTOR": { 'name': 'Power Factor', 'unit': 'pf%', 'color': 'blue' },
     "E_TODAY": { 'name': 'Energy Yield', 'div': 10, 'unit': 'kWh', 'color': 'green' },
@@ -89,3 +89,4 @@ PLOTS = {
 }
 
 DEBUG = False
+DEBUG_LEVEL = 0
