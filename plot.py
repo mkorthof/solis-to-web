@@ -15,12 +15,12 @@ def sort_values(values):
 
 def values(period, plot_key, data):
     ''' Calc values x and y axis '''
-    if not (pathlib.Path(config.WEBDIR) / 'plot').is_dir():
-        print(f'ERROR: {config.WEBDIR}/plot does not exist')
+    if not (pathlib.Path(config.WEBDIR) / config.PLOTDIR).is_dir():
+        print(f'ERROR: {config.WEBDIR}/{config.PLOTDIR} does not exist')
         return
     plot_params = config.PLOTS[plot_key]
     if not data:
-        print(f'ERROR: plot - missing data for "{period}", plot "{plot_key}"')
+        print(f'ERROR: plot - missing data for period "{period}", plot "{plot_key}"')
         return
     # Example:
     #   plot_x = timestamps, plot_y = field values from data (json) e.g.
@@ -110,8 +110,8 @@ def write_plot(period, plot_key, values):
         )
         #fig.update_layout(showlegend=False)
         fig.update_traces(connectgaps=False, line_color=plot_params['color'])
-        fig.write_html(f'{config.WEBDIR}/plot/{plot_fn}', include_plotlyjs='plotly.min.js', full_html=False)
+        fig.write_html(f'{config.WEBDIR}/{config.PLOTDIR}/{plot_fn}', include_plotlyjs='plotly.min.js', full_html=False)
     except Exception as e:
-        print(f'ERROR: plot - "{period} {plot_key}" {e}') 
-        with open(f'{config.WEBDIR}/plot/{plot_fn}', 'w', encoding='utf-8', errors='ignore') as f_plot:
-            f_plot.write(f'<p>❌ Error occurred while plotting "{period.capitalize()} - {plot_key}"</p>') 
+        print(f'ERROR: plot - {e} ("{period} {plot_key}")') 
+        with open(f'{config.WEBDIR}/{config.PLOTDIR}/{plot_fn}', 'w', encoding='utf-8', errors='ignore') as f_plot:
+            f_plot.write(f'<meta charset="utf-8"><p>❌ Error occurred while plotting "{period.capitalize()} - {plot_key}"</p>') 
