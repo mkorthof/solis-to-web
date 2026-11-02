@@ -31,4 +31,4 @@ jobs:
         run: ./docker-build.sh
       - name: Push image
         run: |
-          docker pushghcr.io/mkorthof/solis-to-web:latest
+          docker push ghcr.io/mkorthof/solis-to-web:latest
