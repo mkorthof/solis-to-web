@@ -3,6 +3,7 @@ import helper
 import web
 import db
 from message import inverter_timestamp
+from message import read_files
 
 import paho.mqtt.client as mqtt
 from paho.mqtt.client import CallbackAPIVersion
@@ -11,23 +12,75 @@ import os
 import random
 import glob
 
+import queue
+import threading
+import time
+
 
 ''' Solis (MQTT) to Web Client '''
 
 
+message_queue = queue.Queue()
+
+
+def message_worker():
+    ''' Worker thread that gets messages from queue and processes them '''
+    print(f'{helper.fmt_date_time()} INFO: Worker thread started. Awaiting messages...')
+    while True:
+        try:
+            # block=True and timeout=1 allows the loop to periodically check 
+            # for exit conditions if needed, while remaining highly efficient
+            message = message_queue.get(block=True, timeout=1)
+        except queue.Empty:
+            continue
+        # time consuming operations
+        try:
+            payload = message.payload.decode()
+            print(f'{helper.fmt_date_time()} INFO: Worker received message payload (size={len(payload)})')
+            helper.write_data(payload)
+        except Exception as e:
+            print(f'{helper.fmt_date_time()} ERROR: Worker processing message "{e}"')
+        finally:
+            # signal that the task is finished
+            message_queue.task_done()
+
+
+def check_config():
+    # overwrite config if env var is set
+    for item in dir(config):
+        if not item.startswith("__") and os.environ.get(item):
+            setattr(config, item, os.environ[item])
+    try:
+        config.BROKER_PASSWORD
+        config.BROKER_USERNAME
+        config.BROKER_HOST
+        config.BROKER_PORT
+        config.TOPIC
+    except (NameError, TypeError, ValueError):
+        return False
+    return True
+
+
 def on_connect(client, userdata, connect_flags, reason_code, properties=None):
-    print(f'{helper.fmt_date_time()} INFO: Connected with result code "{reason_code}", subscribing to "{config.TOPIC}"')
-    client.subscribe(config.TOPIC)
+    reason = f'"{reason_code.name}" ({reason_code})' if hasattr(reason_code, 'name') else f'"{reason_code}"'
+    if reason_code == 0:
+        print(f'{helper.fmt_date_time()} INFO: Connected with result {reason}, subscribing to "{config.TOPIC}"')
+        client.subscribe(config.TOPIC)
+    else:
+        print(f'{helper.fmt_date_time()} INFO: Failed to connect {reason}')
 
 
 def on_disconnect(client, userdata, disconnect_flags, reason_code, properties):
-    print(f'INFO: Disconnected with reason code: {reason_code}')
+    reason = f'"{reason_code.name}" ({reason_code})' if hasattr(reason_code, 'name') else f'"{reason_code}"'
+    print(f'{helper.fmt_date_time()} INFO: Disconnected with reason: {reason}')
 
 
 def on_message(client, userdata, message):
     ''' Write payload from last message to json file, and create index.html '''
+    # handle short-running tasks here (store json, create index.html
+    # send longer running tasks to worker (plots, message viewer)
     payload = message.payload.decode()
-    print(f'{helper.fmt_date_time()} INFO: Received {payload}')
+    print(f'{helper.fmt_date_time()} INFO: Received payload (size={len(payload)}) {payload}')
     ts = inverter_timestamp(payload) if inverter_timestamp(payload) else helper.fmt_timestamp_now()
     helper.webdirs()
     if config.USE_FILES:
@@ -62,20 +115,38 @@ def test(period):
 
 
 def main():
-    # overwrite config if env var is set
-    for item in dir(config):
-        if not item.startswith("__") and os.environ.get(item):
-            setattr(config, item, os.environ[item])
-    # v1: client = mqtt.sClient()
+    # start the processing worker in a background thread
+    worker_thread = threading.Thread(target=message_worker, daemon=True)
+    worker_thread.start()
+    if not check_config():
+        print('ERROR: invalid broker and/or topic setting')
+        sys.exit(1)
+    if not os.path.isfile(config.FN_DB):
+        db.create_table()
+    helper.webdirs()        
+    # Initialize the MQTT Client with API Version 2 (Required for Paho 2.x+)
+    # Use v1: client = mqtt.sClient()
     client_id = f'solis-to-web-client-{random.randint(0, 1000)}'  # NOSONAR
     client = mqtt.Client(CallbackAPIVersion.VERSION2, client_id=client_id)
     if config.BROKER_USERNAME and config.BROKER_PASSWORD:
         client.username_pw_set(config.BROKER_USERNAME, config.BROKER_PASSWORD)
-        #client.reconnect_delay_set(min_delay=1, max_delay=60)
     client.on_connect = on_connect
     client.on_message = on_message
-    client.connect(config.BROKER_HOST, config.BROKER_PORT, 60)
-    client.loop_forever()
+    client.connect(config.BROKER_HOST, int(config.BROKER_PORT), 60)
+    # reconnect options already handled for loop_forever 
+    # using loop_start instead of loop_forever
+    #   client.reconnect_delay_set(min_delay=1, max_delay=60)
+    #   client.loop_forever(retry_first_connection=True)
+    # start the non-blocking background network loop
+    client.loop_start()
+    try:
+        # keep the main thread alive
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print("\nDisconnecting and exiting cleanly...")
+        client.loop_stop()
+        client.disconnect()    
 
 
 if '--test' in sys.argv:
