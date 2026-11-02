@@ -23,3 +23,5 @@ solis.pid
 solis.log
 solis.db
 solis-example.sql
+*.log
+
