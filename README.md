@@ -23,9 +23,11 @@ Goto webadmin page of Data stick:
 - Check "Status > Remote Server Information", it should say "Connected"
 - Also get your "Device serial number"
 
+Size of JSON files and database will be about 300MB per year.
+
 ## Configuration
 
-If config\.py does not exist yet, copy defaults from config.py.dist to config\.py first.
+If config\.py does not exist yet, fisrt copy defaults from config.py.dist to config\.py.
 
 Edit config\.py:
 
@@ -38,17 +40,17 @@ Edit config\.py:
 
 ## Database
 
-Create solis.db: `uv run main.py --createdb`
+By default a sqlite db is created called 'solis.db'.
 
-To import exiting json files into databas run: `uv run main.py --importdb`
+To import existing json files into database, run: `uv run main.py --import-db`
+
+To manully create db: `uv run main.py --create-db` (or copy solis.dist.db)
 
 ## Update
 
 Remember check for config changes after updating (see [commits](https://github.com/mkorthof/solis-to-web/commits/master/)).
 
-To convert to new json path and files, use `uv run main.py --convertfn`
-
-This will move `YYYYmmdd_MMHHSS_solis.json` files to `YYYY/mm/d/timestamp.json`
+To convert old `YYYYmmdd_MMHHSS_solis.json` files to new path and filename `YYYY/mm/d/timestamp.json`, run `uv run main.py --convert-files`
 
 ## Running
 
@@ -64,9 +66,7 @@ Run in background and log to solis.log: `./run.sh start`
 
 To run in foreground: `uv run main.py`
 
-## systemd
-
-TODO
+TODO: systemd service unit file
 
 ## docker
 
