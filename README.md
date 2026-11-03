@@ -17,7 +17,7 @@ To run Mosquitto with Docker, see [here](https://hub.docker.com/_/eclipse-mosqui
 
 Make sure Data Stick is inserted in the Inverter and can connect to the MQTT broker (Mosquitto).
 
-Goto webadmin page of Data stick:
+Goto webadmin page of Data Logger stick:
 
 - Set MQTT Broker under to "Advanced > Mqtt Settings"
 - Check "Status > Remote Server Information", it should say "Connected"
@@ -27,7 +27,7 @@ Size of JSON files and database will be about 300MB per year.
 
 ## Configuration
 
-If config\.py does not exist yet, fisrt copy defaults from config.py.dist to config\.py.
+If config\.py does not exist yet, first copy defaults from config.py.dist to config\.py.
 
 Edit config\.py:
 
