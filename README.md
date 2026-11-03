@@ -32,9 +32,9 @@ If config\.py does not exist yet, fisrt copy defaults from config.py.dist to con
 Edit config\.py:
 
 - set `BROKER_HOST`
-- (optionally) set auth with `BROKER_USERNAME` and `BROKER_PASSWORD`, remove settings to disable
+- (optionally) set auth with `BROKER_USERNAME` and `BROKER_PASSWORD` or remove both to disable
 - change `TOPIC` to your device serial number
-- change TS_OFFSET to match your timezone
+- change `TS_OFFSET` to match your timezone
 
 *NOTE: Environment variables will overwrite config settings*
 
