@@ -56,7 +56,7 @@ To convert old `YYYYmmdd_MMHHSS_solis.json` files to new path and filename `YYYY
 
 Either use uv or Docker.
 
-If you do not have uv, check [installation](https://docs.astral.sh/uv/getting-started/installation). It will take care of depedencies (e.g. Paho and Plotly modules).
+If you do not have uv, check [installation](https://docs.astral.sh/uv/getting-started/installation). It will take care of dependencies (e.g. Paho and Plotly modules).
 
 Output html and json files are stored in 'www' dir (optionally use e.g. NGINX to serve).
 
