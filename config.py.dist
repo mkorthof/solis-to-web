@@ -1,4 +1,4 @@
-# CONFIGURATION
+# SOLIS 2 WEB CONFIGURATION
 
 # Host or IP of MQTT broker
 BROKER_HOST = "10.20.30.40"
@@ -59,33 +59,36 @@ WEBSTATIC_FILES = [
     "assets/img/electricity.svg",
     "assets/img/happy.svg",
     "assets/img/apower.svg", 
-    "assets/img/sun.svg",   
+    "assets/img/sun.svg",
+    "assets/img/chart.svg",
+    "assets/img/link.svg",    
 ]
 
 # Plots definitions
 #   "field" gets y-axis values: {
 #       'name' used in title,
-#       'div' divides field values (e.g. 1000 for W to kW),
+#       'div' divides field values (e.g. 1000 for W to kW), default is 1,
 #       'unit' for y label,
+#       'type' bar or line,
 #       'color' for line,
 #       'num': [0-3] to select PV1-4, default is 0 (optional)
 #       'disabled': True|False, default is False (optional)
 #   }
- # SolisCloud:  DC_TOTALPOWER is 'DC Power PV1 (W)'
+# SolisCloud calls DC_TOTALPOWER "Power" and "DC Power PV 1(W)"
 PLOTS = {
-    "APPARENT_POWER": { 'name': 'Apparent Power', 'div': 1000, 'unit': 'VA', 'color': 'darkred'},
-    "DC_TOTALPOWER": { 'name': 'DC Total Power', 'div': 1000, 'unit': 'kW', 'color': 'red' },
-    "REACTIVE_POWER": { 'name': 'Reactive Power', 'unit': 'Var', 'color': 'purple' },
-    "POWER_FACTOR": { 'name': 'Power Factor', 'unit': 'pf%', 'color': 'blue' },
-    "E_TODAY": { 'name': 'Energy Yield', 'div': 10, 'unit': 'kWh', 'color': 'green' },
-    "U_PV": { 'name': 'DC Voltage PV', 'unit': 'V', 'color': 'brown', 'num': 0 },
-    "I_PV": { 'name': 'DC Current PV', 'unit': 'A', 'color': 'orange', 'num': 0  },
-    "U_MPPT": { 'name': 'DC Voltage MPPT ', 'unit': 'V', 'color': 'brown', 'num': 0  },
-    "I_MPPT": { 'name': 'DC Current MPPT ', 'unit': 'A', 'color': 'orange', 'num': 0  },
-    "U_AC": { 'name': 'AC Voltage', 'unit': 'V', 'color': 'brown', 'num': 0  },
-    "I_AC": { 'name': 'AC Current', 'unit': 'A', 'color': 'orange', 'num': 0  },
-    "PAC": { 'name': 'AC Output Total Power', 'unit': 'kW', 'color': 'hotpink', 'disabled': False},
-    "FAC": { 'name': 'AC Frequency', 'unit': 'Hz', 'color': 'teal', 'disabled': True },
+    "APPARENT_POWER": { 'name': 'Apparent Power', 'div': 1, 'unit': 'VA', 'type': 'line', 'type': 'line', 'color': 'darkred'},
+    "DC_TOTALPOWER": { 'name': 'DC Total Power', 'div': 1, 'unit': 'W', 'type': 'line', 'color': 'red' },
+    "REACTIVE_POWER": { 'name': 'Reactive Power', 'div': 1, 'unit': 'Var', 'type': 'line', 'color': 'purple' },
+    "POWER_FACTOR": { 'name': 'Power Factor', 'div': 1, 'unit': 'pf%', 'type': 'line', 'color': 'blue' },
+    "E_TODAY": { 'name': 'Energy Yield', 'div': 10, 'unit': 'kWh', 'type': 'bar', 'color': 'green' },
+    "U_PV": { 'name': 'DC Voltage PV', 'div': 1, 'unit': 'V', 'type': 'line', 'color': 'brown', 'num': 0 },
+    "I_PV": { 'name': 'DC Current PV', 'div': 1, 'unit': 'A', 'type': 'line', 'color': 'orange', 'num': 0  },
+    "U_MPPT": { 'name': 'DC Voltage MPPT ', 'div': 1, 'unit': 'V', 'type': 'line', 'color': 'brown', 'num': 0  },
+    "I_MPPT": { 'name': 'DC Current MPPT ', 'div': 1, 'unit': 'A', 'type': 'line', 'color': 'orange', 'num': 0  },
+    "U_AC": { 'name': 'AC Voltage','div': 1, 'unit': 'V', 'type': 'line', 'color': 'brown', 'num': 0  },
+    "I_AC": { 'name': 'AC Current', 'div': 1, 'unit': 'A', 'type': 'line', 'color': 'orange', 'num': 0  },
+    "PAC": { 'name': 'AC Output Total Power', 'div': 1, 'unit': 'kW', 'type': 'line', 'color': 'hotpink', 'disabled': False},
+    "FAC": { 'name': 'AC Frequency', 'div': 1, 'unit': 'Hz', 'type': 'line', 'color': 'teal', 'disabled': False },
 }
 
 DEBUG = False
