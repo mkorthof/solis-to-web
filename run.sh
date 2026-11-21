@@ -1,13 +1,13 @@
 #!/bin/sh
 
-# Run Solis To Web service
+# Run Solis 2 Web service
 
 if ! command -v uv >/dev/null 2>&1; then
     echo "ERROR: could not find 'uv' (https://docs.astral.sh/uv), exiting..."
     exit 1
 fi
 
-SERVICE="Solis MQTT to Web Client"
+SERVICE="Solis MQTT 2 Web Client"
 PID="$(pgrep -F solis.pid 2>/dev/null)"
 
 func_status() {
