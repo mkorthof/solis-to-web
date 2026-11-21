@@ -206,13 +206,22 @@ def main():
         client.username_pw_set(config.BROKER_USERNAME, config.BROKER_PASSWORD)
     client.on_connect = on_connect
     client.on_message = on_message
-    client.connect(config.BROKER_HOST, int(config.BROKER_PORT), 60)
-    # reconnect options already handled for loop_forever 
-    # using loop_start instead of loop_forever
+    for attempt in range(3):
+        try:
+            client.connect(config.BROKER_HOST, int(config.BROKER_PORT), 60)
+            client.loop_start()
+            break
+        except Exception as e:
+            print(f'{helper.fmt_date_time()} WARNING: Failed to connect {attempt + 1} times - {e}')
+            time.sleep(2)
+    else:
+        print(f'{helper.fmt_date_time()} ERROR: startup failed after max retries, exiting...')
+        sys.exit(1)
+    # reconnect options already handled by loop_forever
+    # using loop_start instead of loop_forever:
     #   client.reconnect_delay_set(min_delay=1, max_delay=60)
     #   client.loop_forever(retry_first_connection=True)
     # start the non-blocking background network loop
-    client.loop_start()
     try:
         # keep the main thread alive
         while True:
