@@ -65,9 +65,9 @@ If you do not have uv, check [installation](https://docs.astral.sh/uv/getting-st
 
 Or, start in background and log to solis.log using wrapper script: `./run.sh start`
 
-# systemd
+## systemd
 
-Use unit file in systemd dir.
+Use unit file from 'systemd' dir.
 
 See [docs/Service.md](docs/Service.md)
 
