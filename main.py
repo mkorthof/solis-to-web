@@ -52,6 +52,10 @@ EXPECTED_CONFIG = {
 message_queue = queue.Queue()
 
 
+# TODO: improve running short vs long operationa
+#       - index using current payload in on_message (today/yesterday)
+#       - generate plots and messages with message_worker (week/month/year)
+
 def message_worker():
     ''' Worker thread that gets messages from queue and processes them '''
     print(f'{helper.fmt_date_time()} INFO: Worker thread started. Awaiting messages...')

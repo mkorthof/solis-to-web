@@ -205,9 +205,6 @@ def set_index_values(payload, data):
     }
 
 
-# TODO: properly separate short/long running ops
-#       - index using current payload in on_message (today/yesterday)
-#       - generate plots and messages with message_worker (week/month/year)
 def write_data(payload):
     ''' Get data from json. Generate and write index, plot and message as html files '''
     data = {}
