@@ -1,0 +1,19 @@
+[Unit]
+Description=Solis 2 Web (run.sh)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=forking
+User=<YOUR-USER>
+WorkingDirectory=/home/<YOUR-USER>/solis-to-web
+PIDFile=/home/<YOUR-USER>/solis-to-web/solis.pid
+ExecStart=/bin/sh /home/<YOUR-USER>/solis-to-web/run.sh start
+ExecStop=/bin/sh /home/<YOUR-USER>/solis-to-web/run.sh stop
+Environment="PATH=/home/<YOUR-USER>/.local/bin:/usr/local/bin:/usr/bin:/bin"
+Environment=PYTHONUNBUFFERED=1
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,16 @@
+[Unit]
+Description=Solis 2 Web
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=<YOUR_USER>
+WorkingDirectory<YOUR_DIRECTORY>
+ExecStart=uv run main.py
+Environment=PYTHONUNBUFFERED=1
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
