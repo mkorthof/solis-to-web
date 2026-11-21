@@ -35,6 +35,7 @@ Edit config\.py:
 - (optionally) set auth with `BROKER_USERNAME` and `BROKER_PASSWORD` or remove both to disable
 - change `TOPIC` to your device serial number
 - change `TS_OFFSET` to match your timezone
+- change `TS_OFFSET` to match your timezone
 
 *NOTE: Environment variables will overwrite config settings*
 
@@ -44,7 +45,7 @@ By default a sqlite db is created called 'solis.db'.
 
 To import existing json files into database, run: `uv run main.py --import-db`
 
-To manully create db: `uv run main.py --create-db` (or copy solis.dist.db)
+To manually create db: `uv run main.py --create-db` (or copy database/solis.dist.db)
 
 ## Update
 
@@ -54,19 +55,21 @@ To convert old `YYYYmmdd_MMHHSS_solis.json` files to new path and filename `YYYY
 
 ## Running
 
-Either use uv or Docker.
+Either use uv, systemd or docker.
 
-If you do not have uv, check [installation](https://docs.astral.sh/uv/getting-started/installation). It will take care of dependencies (e.g. Paho and Plotly modules).
-
-Output html and json files are stored in 'www' dir (optionally use e.g. NGINX to serve).
+Output html and json files are stored in 'htdocs' dir (optionally use e.g. NGINX to serve).
 
 ## uv
 
-Run in background and log to solis.log: `./run.sh start`
+If you do not have uv, check [installation](https://docs.astral.sh/uv/getting-started/installation). It will take care of dependencies (e.g. Paho and Plotly modules).
 
-To run in foreground: `uv run main.py`
+Or, start in background and log to solis.log using wrapper script: `./run.sh start`
 
-TODO: systemd service unit file
+# systemd
+
+Use unit file in systemd dir.
+
+See [docs/Service.md](docs/Service.md)
 
 ## docker
 
@@ -74,16 +77,4 @@ Run latest image from GitHub:
 
 `docker run --volume "$PWD/config.py:/app/config.py" --volume "$PWD/web:/app/web"  ghcr.io/mkorthof/solis-mqtt-to-web:latest`
 
-Or use env vars e.g.:
-
-`docker run --env BROKER_HOST=1.2.3.4 --env BROKER_PORT=321 --env TOPIC="/ginlong/ABCDEF1234/update" --volume "$PWD/web:/app/web"  ghcr.io/mkorthof/solis-mqtt-to-web:latest`
-
-To run both Mosquitto and Client (detached):
-
-`./docker-run.sh`
-
-## docker compose
-
-Run Mosquitto and Client using compose (detached):
-
-`./docker compose up -d`
+For details, see [docs/Docker.md](docs/Docker.md)
