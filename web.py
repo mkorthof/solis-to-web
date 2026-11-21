@@ -213,9 +213,8 @@ def _message_table_rows(data):
                     '</td>\n' for field in config.PLOT_TYPES)} \
                 {'<td>-</td>\n' if not config.STORE_FILES else \
                     f'<td>' \
-                        f'<a href="#" onclick=\'fetchJSONData("{v.get('fn')}", "html", true)\'> html</a> | \n'
-                        '<a href="#" onclick=\'document.getElementById("message").innerHTML =' \
-                            f'`<pre>${{fetchJSONData("{v.get('fn')}", "pretty", false)}}</pre>`\'>json</a>' \
+                        f'<a href="#" data-json-file="{escape(v.get("fn", ""), quote=True)}" data-json-output="html" data-json-mask="true">html</a> | \n'
+                        f'<a href="#" data-json-file="{escape(v.get("fn", ""), quote=True)}" data-json-output="pretty" data-json-mask="false">json</a>' \
                     '</td>\n' } \
             </tr>\n' \
         for k, v in data.items()) }
