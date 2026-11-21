@@ -13,7 +13,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 FROM python:3.13-slim-trixie
 LABEL org.opencontainers.image.source=https://github.com/mkorthof/solis-to-web
-LABEL org.opencontainers.image.description="Solis (MQTT) to Web Client"
+LABEL org.opencontainers.image.description="Solis 2 Web"
 RUN groupadd --system --gid 1000 solis && \
     useradd --system --gid 1000 --uid 1000 --create-home solis
 COPY --from=builder --chown=solis:solis /app /app
