@@ -17,8 +17,36 @@ import threading
 import time
 
 
-''' Solis (MQTT) to Web Client '''
+''' Solis 2 Web '''
+''' Gets data using MQTT Client and creates html files '''
 
+
+EXPECTED_CONFIG = {
+    "BROKER_HOST": str,
+    "BROKER_PORT": int,
+    "BROKER_USERNAME": str,
+    "BROKER_PASSWORD": str,
+    "TOPIC": str,
+    "INVERTER_ID": str,
+    "COLLECTOR_ID": str,
+    "TS_OFFSET": int,
+    "STORE_FILES": bool,
+    "USE_DATABASE": bool,
+    "FN_DB": str,
+    "WEBDIR": str,
+    "JSONDIR": str,
+    "PLOTDIR": str,
+    "TITLE": str,
+    "HEADER": str,
+    "PERIODS": list,
+    "PLOT_TYPES": list,
+    "INDEX_PLOT_TYPES": list,
+    "WEBSTATIC": bool,
+    "WEBSTATIC_FILES": list,
+    "PLOTS": dict,
+    "DEBUG": bool,
+    "DEBUG_LEVEL": int,
+}
 
 message_queue = queue.Queue()
 
@@ -45,19 +73,40 @@ def message_worker():
             message_queue.task_done()
 
 
-def check_config():
-    # overwrite config if env var is set
-    for item in dir(config):
-        if not item.startswith("__") and os.environ.get(item):
-            setattr(config, item, os.environ[item])
-    try:
-        config.BROKER_PASSWORD
-        config.BROKER_USERNAME
-        config.BROKER_HOST
-        config.BROKER_PORT
-        config.TOPIC
-    except (NameError, TypeError, ValueError):
+def load_env_overrides() -> bool:
+    """ Overwrites config attributes from environment variables, if set """
+    for key, expected_type in EXPECTED_CONFIG.items():
+        env_val = os.environ.get(key)
+        if env_val is not None:
+            try:
+                if expected_type is bool:
+                    normalized = env_val.strip().lower()
+                    if normalized in {"true", "1"}:
+                        setattr(config, key, True)
+                    elif normalized in {"false", "1",}:
+                        setattr(config, key, False)
+                    else:
+                        raise ValueError
+                else:
+                    setattr(config, key, expected_type(env_val))
+            except ValueError:
+                print(f'Could not set env var {key}={env_val}')
+                return False
+    return True
+
+
+def is_valid_config() -> bool:
+    """ Validates that config attributes exist and match expected types """
+    if not load_env_overrides():
         return False
+    for key, expected_type in EXPECTED_CONFIG.items():
+        val = getattr(config, key, None)
+        if not isinstance(val, expected_type):
+            print(f'Unexpected setting {key}={val}')
+            return False
+        if expected_type is str and not val.strip():
+            print(f'Unexpected setting ({key}={val}')
+            return False
     return True
 
 
@@ -128,12 +177,12 @@ def main():
     # start the processing worker in a background thread
     worker_thread = threading.Thread(target=message_worker, daemon=True)
     worker_thread.start()
-    if not check_config():
-        print('ERROR: invalid broker and/or topic setting')
+    if not is_valid_config():
+        print('ERROR: invalid config, exiting...')
         sys.exit(1)
     if not os.path.isfile(config.FN_DB):
         db.create_table()
-    helper.webdirs()        
+    helper.webdirs()
     # Initialize the MQTT Client with API Version 2 (Required for Paho 2.x+)
     # Use v1: client = mqtt.sClient()
     client_id = f'solis-to-web-client-{random.randint(0, 1000)}'  # NOSONAR
