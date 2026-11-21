@@ -93,7 +93,7 @@ class MainModuleTests(unittest.TestCase):
                     main.main()
 
             self.assertEqual(config.BROKER_HOST, "env-broker")
-            self.assertEqual(config.BROKER_PORT, "8883")
+            self.assertEqual(config.BROKER_PORT, 8883)
             self.assertEqual(config.TOPIC, "/env/topic")
             mock_thread.assert_called_once()
             mock_client.connect.assert_called_once_with("env-broker", 8883, 60)
@@ -103,6 +103,42 @@ class MainModuleTests(unittest.TestCase):
             config.TOPIC = original["TOPIC"]
             config.BROKER_USERNAME = original["BROKER_USERNAME"]
             config.BROKER_PASSWORD = original["BROKER_PASSWORD"]
+
+    def test_main_retries_when_loop_start_fails(self):
+        mock_client = mock.Mock()
+        mock_client.loop_start.side_effect = [RuntimeError("loop failed"), None]
+
+        with mock.patch.object(main.threading, "Thread"), \
+             mock.patch.object(main.time, "sleep", side_effect=[None, KeyboardInterrupt]) as mock_sleep, \
+             mock.patch.object(main.os.path, "isfile", return_value=True), \
+             mock.patch.object(main.helper, "webdirs"), \
+             mock.patch.object(main, "is_valid_config", return_value=True), \
+             mock.patch.object(main.mqtt, "Client", return_value=mock_client):
+            main.main()
+
+        self.assertEqual(mock_client.connect.call_count, 2)
+        self.assertEqual(mock_client.loop_start.call_count, 2)
+        mock_sleep.assert_has_calls([mock.call(2), mock.call(1)])
+        mock_client.loop_stop.assert_called_once()
+        mock_client.disconnect.assert_called_once()
+
+    def test_main_exits_after_all_startup_attempts_fail(self):
+        mock_client = mock.Mock()
+        mock_client.connect.side_effect = ConnectionError("broker unavailable")
+
+        with mock.patch.object(main.threading, "Thread"), \
+             mock.patch.object(main.time, "sleep") as mock_sleep, \
+             mock.patch.object(main.os.path, "isfile", return_value=True), \
+             mock.patch.object(main.helper, "webdirs"), \
+             mock.patch.object(main, "is_valid_config", return_value=True), \
+             mock.patch.object(main.mqtt, "Client", return_value=mock_client):
+            with self.assertRaises(SystemExit) as exit_context:
+                main.main()
+
+        self.assertEqual(exit_context.exception.code, 1)
+        self.assertEqual(mock_client.connect.call_count, 3)
+        mock_client.loop_start.assert_not_called()
+        self.assertEqual(mock_sleep.call_count, 3)
 
 
 if __name__ == "__main__":

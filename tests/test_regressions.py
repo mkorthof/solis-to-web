@@ -14,7 +14,7 @@ class RegressionTests(unittest.TestCase):
              mock.patch.object(main.time, "sleep", side_effect=KeyboardInterrupt), \
              mock.patch.object(main.os.path, "isfile", return_value=True), \
              mock.patch.object(main.helper, "webdirs"), \
-             mock.patch.object(main, "check_config", return_value=True):
+             mock.patch.object(main, "is_valid_config", return_value=True):
             main.main()
 
         mock_thread.assert_called_once()

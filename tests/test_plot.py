@@ -36,7 +36,7 @@ class PlotModuleTests(unittest.TestCase):
         fig = mock.Mock()
         mock_px_line.return_value = fig
 
-        plot.write_plot("today", "E_TODAY", [{"x": "2026-09-11 19:00:00", "y": 5.5}])
+        plot.write_plot("today", "E_TODAY", [{"x": "2026-09-11 19:00:00", "y": 5.5}], "line")
 
         mock_px_line.assert_called_once()
         fig.update_layout.assert_called_once()
@@ -45,7 +45,7 @@ class PlotModuleTests(unittest.TestCase):
 
     @mock.patch("plot.helper.is_valid_filename", return_value=False)
     def test_write_plot_skips_invalid_filename(self, mock_is_valid_filename):
-        plot.write_plot("today", "E_TODAY", [{"x": "2026-09-11 19:00:00", "y": 5.5}])
+        plot.write_plot("today", "E_TODAY", [{"x": "2026-09-11 19:00:00", "y": 5.5}], "line")
         self.assertTrue(True)
 
 

@@ -70,7 +70,8 @@ class WebModuleTests(unittest.TestCase):
 
         self.assertIn("2026-09-11 19:00:00", html)
         self.assertIn("5.5", html)
-        self.assertIn("2.0", html)
+        expected_power = helper.divide(2000, config.PLOTS["DC_TOTALPOWER"].get("div", 1), 0)
+        self.assertIn(str(expected_power), html)
         self.assertIn("<td>", html)
 
     def test_index_html_includes_expected_status_and_plot_sections(self):
