@@ -113,7 +113,7 @@ def divide(value, divisor, num):
     ''' Convert unit by dividing value (e.g. W to kW) '''
     try:
         return(int(value[num])/divisor if isinstance(value, list) else int(value)/divisor)
-    except (KeyError, ValueError, TypeError):
+    except (KeyError, ValueError, TypeError, ZeroDivisionError):
         pass
     return value
 
@@ -178,10 +178,10 @@ def set_index_values(payload, data):
     inverter_timestamp = message.inverter_timestamp(payload)
     inverter_dt_obj = dt_obj(inverter_timestamp, True) if inverter_timestamp else None
     inverter_yesterday = message.inverter_notification(yesterday_last)
-    inverter_dc_totalpower = f'{divide(inverter.get('DC_TOTALPOWER'), config.PLOTS['DC_TOTALPOWER']['div'], 0)} {config.PLOTS['DC_TOTALPOWER']['unit']}'
-    inverter_apparent_power = f'{divide(inverter.get('APPARENT_POWER'), config.PLOTS['APPARENT_POWER']['div'], 0)} {config.PLOTS['APPARENT_POWER']['unit']}'
-    inverter_e_today = f'{divide(inverter.get('E_TODAY'), config.PLOTS['E_TODAY']['div'], 0)} {config.PLOTS['E_TODAY']['unit']}'
-    inverter_e_yesterday = f'{divide(inverter_yesterday.get('E_TODAY'), config.PLOTS['E_TODAY']['div'], 0)} {config.PLOTS['E_TODAY']['unit']}'
+    inverter_fmt_str = {}
+    for field in ['DC_TOTALPOWER', 'APPARENT_POWER', 'E_TODAY']:
+        inverter_fmt_str[field] = f'{divide(inverter.get(field), config.PLOTS[field].get('div', 1), 0)} {config.PLOTS[field]['unit']}'
+    inverter_fmt_str['E_YESTERDAY'] = f'{divide(inverter_yesterday.get('E_TODAY'), config.PLOTS['E_TODAY'].get('div', 1), 0)} {config.PLOTS['E_TODAY']['unit']}'
     # test: inverter['WARNING_INFO_DATA'] = '3F2'
     return {
         'payload': payload,
@@ -195,10 +195,10 @@ def set_index_values(payload, data):
         'inverter_temp': divide(inverter.get('INVERTER_TEMP'), 10, 0),
         'inverter_state': codes.get_status(inverter.get('CURRENT_STATE')),
         'inverter_warning': codes.get_error(inverter.get('WARNING_INFO_DATA')),
-        'inverter_dc_totalpower': inverter_dc_totalpower,
-        'inverter_apparent_power': inverter_apparent_power,
-        'inverter_e_today': inverter_e_today,
-        'inverter_e_yesterday': inverter_e_yesterday,
+        'inverter_dc_totalpower': inverter_fmt_str.get('DC_TOTALPOWER'),
+        'inverter_apparent_power': inverter_fmt_str.get('APPARENT_POWER'),
+        'inverter_e_today': inverter_fmt_str.get('E_TODAY'),
+        'inverter_e_yesterday': inverter_fmt_str.get('E_YESTERDAY'),
         'collector': collector,
         'collector_work_time': format(datetime.timedelta(seconds=collector.get('CURRENT_WTIME', 0)).seconds/3600, ".0f") if collector else None,
         'collector_total_time': datetime.timedelta(seconds=collector.get('TOTAL_WTIME', 0)) if collector else None,
@@ -216,7 +216,7 @@ def write_data(payload):
     for period in config.PERIODS:
         for plot_key in config.PLOTS:
             plot_values = plot.values(period, plot_key, data[period])
-            plot.write_plot(period, plot_key, plot_values)
+            plot.write_plot(period, plot_key, plot_values, config.PLOTS[plot_key].get('type'))
     for period in config.PERIODS:
         with open(f'{config.WEBDIR}/messages_{period}.html', 'w', encoding='utf-8', errors='ignore') as f:
             f.write(web.messages_html(period, data.get(period, {})))
@@ -224,4 +224,3 @@ def write_data(payload):
         f.write(web.plots_all_html(config.PERIODS)) 
     with open(f'{config.WEBDIR}/index.html', 'w', encoding='utf-8', errors='ignore') as f:
         f.write(web.index_html(set_index_values(payload, data)))
-
