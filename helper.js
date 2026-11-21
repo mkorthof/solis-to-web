@@ -133,6 +133,15 @@ function json2Html(data, mask) {
     }, 50);
 };
 
+/*
+function showClose(){
+    return `
+        <div class="close">
+            <a href="#" data-message-close>Close</a> [<a href="#" data-message-close>x</a>]
+        </div>
+    `;
+}
+*/
 function showClose(){
     return `
         <div class="close">
@@ -141,23 +150,39 @@ function showClose(){
     `;
 }
 
-function fetchJSONData (filename, output='pretty', mask='false') {
-    fetch(filename)
-        .then((response) => {
-            if (!response.ok) {
-                throw new Error(`Error fetching json data, response was not ok (filename=${filename})`);
-            }
-            return response.json();
-        })
-        .then((data) => {
-            //console.log('DEBUG: fetchJSONData data =', data);
-            if (output == 'pretty'  ) {
-                prettyPrintJSON(data, mask);
-            } else if (output =='html') {
-                json2Html(data, mask);
-            }
-        })
-        .catch((error) => {
-            console.error("Error loading JSON file", error);
-        });
+
+document.addEventListener('click', async (event) => {
+    //const target = event.target instanceof Element ? event.target.closest('[data-json-file], [data-message-close]') : null;
+    const target = event.target instanceof Element ? event.target.closest('[data-json-file]') : null;
+    if (!target) return;
+    event.preventDefault();
+    /*
+    if (target.dataset('data-message-close')) {
+        document.getElementById('message').innerHTML = '';
+        return;
+    }
+    */
+    try {
+        await fetchJSONData(
+            target.dataset.jsonFile,
+            target.dataset.jsonOutput,
+            target.dataset.jsonMask === 'true'
+        );
+    } catch (error) {
+        console.error('Error loading JSON file', error);
+    }
+});
+
+async function fetchJSONData(filename, output = 'pretty', mask = false) {
+    const response = await fetch(filename);
+    if (!response.ok) {
+        throw new Error(`Error fetching json data, response was not ok (filename=${filename})`);
+    }
+
+    const data = await response.json();
+    if (output === 'pretty') {
+        prettyPrintJSON(data, mask);
+    } else if (output === 'html') {
+        json2Html(data, mask);
+    }
 }
