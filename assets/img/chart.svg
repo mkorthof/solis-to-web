@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="32px" height="32px">
+  <!-- White Background Layer -->
+  <rect width="64" height="64" fill="#f5f3f2" />
+
+  <!-- Background Grid lines -->
+  <line x1="12" y1="20" x2="56" y2="20" stroke="#E2E8F0" stroke-width="1.5" stroke-dasharray="2 2" />
+  <line x1="12" y1="34" x2="56" y2="34" stroke="#E2E8F0" stroke-width="1.5" stroke-dasharray="2 2" />
+  <line x1="12" y1="48" x2="56" y2="48" stroke="#E2E8F0" stroke-width="1.5" stroke-dasharray="2 2" />
+
+  <!-- Shaded Area Under the Trend Line -->
+  <path d="M 12 48 L 12 44 L 24 34 L 36 38 L 48 20 L 48 48 Z" fill="url(#grad)" opacity="0.15" />
+
+  <!-- Axis Lines (Graph Frame) -->
+  <polyline points="12,12 12,48 56,48" fill="none" stroke="#94A3B8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+
+  <!-- Trend Line -->
+  <polyline points="12,44 24,34 36,38 48,20" fill="none" stroke="#EF4444" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+
+  <!-- Upward Arrow Head -->
+  <polyline points="40,20 48,20 48,28" fill="none" stroke="#EF4444" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+
+  <!-- Data Point Nodes (Circles) -->
+  <circle cx="12" cy="44" r="3" fill="#EF4444" />
+  <circle cx="24" cy="34" r="3" fill="#EF4444" />
+  <circle cx="36" cy="38" r="3" fill="#EF4444" />
+  <circle cx="48" cy="20" r="3" fill="#EF4444" />
+
+  <!-- Gradients -->
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#EF4444;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#EF4444;stop-opacity:0" />
+    </linearGradient>
+  </defs>
+</svg>
