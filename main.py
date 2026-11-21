@@ -232,6 +232,9 @@ def main():
         client.disconnect()    
 
 
+# handle arguments
+
+
 if '--test' in sys.argv:
     try:
         period = sys.argv[2]
@@ -247,26 +250,57 @@ if '--create-db' in sys.argv:
 
 
 if '--import-db' in sys.argv:
-    try:
+    replace = False
+    fpath = '**'
+    offset = True
+    if '--no-offset' in sys.argv:
+        offset=False
+    if '--replace' in sys.argv:
+        replace = True
+    if len(sys.argv) > 1 and sys.argv[2]:
         fpath = sys.argv[2]
-    except IndexError:
-        fpath = '**'
-    for ts, payload in read_files(fpath).items():
-        # TEST: to replace ts, use db.replace()
-        db.insert(ts, payload)
+    for dt, payload in read_files(fpath).items():
+        ts = helper.fmt_timestamp(dt.timestamp(), offset)
+        #ts = ts-3600*7*2
+        #print(offset, dt, ts, ts-3600*7, config.TS_OFFSET)
+        # TODO: fix json conversion
+        if replace:
+            db.replace(ts, str(payload).replace("'", '"'))
+        else:
+            db.insert(ts, str(payload).replace("'", '"'))
     sys.exit(0)
 
 
 if '--delete-db' in sys.argv:
+    apply = False
+    offset = True
+    num_records = 0
+    if '--apply' in sys.argv:
+        apply = True
+    if '--no-offset' in sys.argv:
+        offset=False
     try:
         fpath = sys.argv[2]
     except IndexError:
-        print('ERROR: need path to json')
-        sys.exit(0)
-    for ts in read_files(fpath).keys():
-        # TEST: to actually delete, use db.delete_ts()
-        print(int(ts.totimestamp()))
-        #print(db.query_ts(int(ts.totimestamp())))
+        print('ERROR: need path to json, exiting...')
+        sys.exit(1)
+    for dt_obj in read_files(fpath).keys():
+        # dry-run
+        ts = helper.fmt_timestamp(dt_obj.timestamp(), offset)
+        # ts = ts-3600*7
+        result = db.query_ts(ts)
+        if result:
+            print(f'INFO: delete db dt={dt_obj} ts={ts} offset={offset} match records = {result}')
+            num_records = num_records+1
+        # actually delete
+        if apply:
+            #db.delete_ts(dt_obj.timestamp())
+            ts = helper.fmt_timestamp(dt_obj.timestamp(), offset=offset)
+            db.delete_ts(ts)
+    if apply:
+        print(f'INFO: Deleted {num_records} records.')
+    else:
+        print(f'INFO: Rerun with "--apply" to actually delete {num_records} records.')
     sys.exit(0)
 
 
