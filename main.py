@@ -11,6 +11,7 @@ import sys
 import os
 import random
 import glob
+import json
 
 import queue
 import threading
@@ -63,7 +64,7 @@ def message_worker():
             continue
         # time consuming operations
         try:
-            payload = message.payload.decode()
+            payload = message.payload.decode('utf-8')
             print(f'{helper.fmt_date_time()} INFO: Worker received message payload (size={len(payload)})')
             helper.write_data(payload)
         except Exception as e:
@@ -128,7 +129,12 @@ def on_message(client, userdata, message):
     ''' Write payload from last message to json file, and create index.html '''
     # handle short-running tasks here (store json, create index.html
     # send longer running tasks to worker (plots, message viewer)
-    payload = message.payload.decode()
+    payload = message.payload.decode('utf-8')
+    try:
+        json.loads(payload)
+    except json.decoder.JSONDecodeError as e:
+        print(f'ERROR: decoding JSON - "{e}"')
+        return
     print(f'{helper.fmt_date_time()} INFO: Received payload (size={len(payload)}) {payload}')
     ts = inverter_timestamp(payload) if inverter_timestamp(payload) else helper.fmt_timestamp_now()
     helper.webdirs()
