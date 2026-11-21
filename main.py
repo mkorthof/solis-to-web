@@ -151,28 +151,37 @@ def on_message(client, userdata, message):
 
 
 def test(period):
-    if not check_config():
-        print('ERROR: invalid broker and/or topic setting')
+    if not is_valid_config():
+        print('ERROR: invalid config, exiting...')
         sys.exit(1)
     # fn = f'{config.WEBDIR}/{config.JSONDIR}/{helper.last_message(period)["pf"]}-solis.json'
     # fn = f'export/20260708_180444-solis.json'
-    #print(f'{config.WEBDIR}/{config.JSONDIR}/{helper.fn_date(period)}*/*.json')
     if period == 'today':
-        print(f'TEST: fpath_today {helper.fpath_today()}')
+        #print(f'{config.WEBDIR}/{config.JSONDIR}/{helper.fn_date(period)}*/*.json')
+        #{helper.fpath_today()}')
+        #print(f'TEST: glob {config.WEBDIR}/{config.JSONDIR}/{helper.fpath_today()}/*.json')
         try:
-            fn = max(sorted(glob.glob(f'{config.WEBDIR}/{config.JSONDIR}/{helper.fpath_today()}/*.json', recursive=True)))
+            fn = max(sorted(glob.glob(f'{config.WEBDIR}/{config.JSONDIR}/{helper.fpath_today()}/*.json', recursive=True), reverse=True))
         except ValueError as e:
-            print(f'TEST: "{e}" - try yesterday?')
+            print("TEST: error (try '--yesterday' ?), exiting...", e)
             sys.exit(1)
     elif period == 'yesterday':
-        print(f'TEST: fpath_today {helper.fpath_yesterday()}')
-        fn = max(sorted(glob.glob(f'{config.WEBDIR}/{config.JSONDIR}/{helper.fpath_yesterday()}/*.json', recursive=True)))
+        try:
+            print(f'TEST: fpath_yesterday {helper.fpath_yesterday()}')
+            fn = max(sorted(glob.glob(f'{config.WEBDIR}/{config.JSONDIR}/{helper.fpath_yesterday()}/*.json', recursive=True)))
+        except ValueError as e:
+            print('TEST: error, exiting...', e)
+            sys.exit(1)
     ts = None
-    #print(f'TEST: using "{fn}"')
+    print(f'TEST: using "{fn}"')
     with open(f'{fn}', 'r', encoding='utf-8', errors='ignore') as f:
         payload = f.read()
-        ts = inverter_timestamp(payload) if inverter_timestamp(payload) else helper.fmt_timestamp_now()
-    print(f'TEST: ts={helper.fmt_timestamp(ts)} offset={helper.fmt_timestamp(ts, True)} dt_obj="{helper.dt_obj(ts)}" offset="{helper.dt_obj(ts, True)}"')
+    try:
+        ts = inverter_timestamp(payload)
+    except Exception as e:
+        print(f'TEST: unable to get INVERTER_TIME from json, using "now" instead (ts={ts})', e)
+        ts = helper.fmt_timestamp_now()
+    #print('TEST: payload =', payload)
     #print(f'TEST: makedirs {config.WEBDIR}/{config.JSONDIR}/{helper.fpath_today()}')
     config.HEADER = (f'<pre style=font-size:0.5em>TEST: "{fn}"</pre>') + ''.join(config.HEADER)
     helper.webdirs()
