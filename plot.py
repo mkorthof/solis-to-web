@@ -22,11 +22,11 @@ def values(period, plot_key, data):
     if not data:
         print(f'ERROR: plot - missing data for period "{period}", plot "{plot_key}"')
         return
+
     # Example:
     #   plot_x = timestamps, plot_y = field values from data (json) e.g.
     #     2026-01-01 12:00:01 {'e_today': '5.5' ... }
     #     2026-01-01 12:05:01 {'e_today': '5.6' ... }
-
 
     #plot_x = list(data.keys())
     #plot_y = [vals.get(plot_key) for _, vals in data.items()]
@@ -72,7 +72,7 @@ def ts_to_dt_obj(values):
     return [datetime.datetime.fromtimestamp(v['x'] if isinstance(v, int) else v) for v in values]
 
 
-def write_plot(period, plot_key, values):
+def write_plot(period, plot_key, values, chart_type):
     ''' Create plot and export to html file '''
     # Alternative export methods:
     #   plotly.offline.plot(fig, filename=f'{config.WEBDIR}/plot_{period}.html', auto_open=False)
@@ -97,11 +97,22 @@ def write_plot(period, plot_key, values):
         #) 
 
         # x-axis values needs to be datetime obj or iso date str
-        fig = px.line(
-            x=[v['x'] for v in values],
-            y=[v['y'] for v in values],
-            title=f'📈 {period.capitalize()} - {plot_params['name']}'
-        )
+
+        if chart_type == 'line':
+            fig = px.line(
+                x=[v['x'] for v in values],
+                y=[v['y'] for v in values],
+                title=f'📈 {period.capitalize()} - {plot_params['name']}'
+            )
+            fig.update_traces(connectgaps=False, line_color=plot_params['color'])
+
+        if chart_type == 'bar':
+            fig = px.bar(
+                x=[v['x'] for v in values],
+                y=[v['y'] for v in values],
+                title=f'📈 {period.capitalize()} - {plot_params['name']}'
+            )
+
         fig.update_layout(
             xaxis_title='',
             yaxis_title=plot_params['unit'],
@@ -109,7 +120,6 @@ def write_plot(period, plot_key, values):
             paper_bgcolor='rgba(255,255,255, 0)'
         )
         #fig.update_layout(showlegend=False)
-        fig.update_traces(connectgaps=False, line_color=plot_params['color'])
         fig.write_html(f'{config.WEBDIR}/{config.PLOTDIR}/{plot_fn}', include_plotlyjs='plotly.min.js', full_html=False)
     except Exception as e:
         print(f'ERROR: plot - {e} ("{period} {plot_key}")') 
