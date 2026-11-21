@@ -1,3 +1,5 @@
+from html import escape
+
 import config
 import message
 import helper
@@ -45,17 +47,17 @@ def index_html(data):
                     <h4>Real-time Information</h4>
                     <article>
                         <p>
-                            <img src="static/electricity.svg" class="icon" />DC Total Power:
+                            <img src="static/electricity.svg" class="icon" width="32" height="32" /> &nbsp; DC Total Power:
                             <strong>
                                 {data.get('inverter_dc_totalpower')}
                             </strong>
                         </p>
                         <p>
-                            <img src="static/apower.svg" class="icon" />Apparent Power:
+                            <img src="static/apower.svg" class="icon" width="32" height="32" /> &nbsp; Apparent Power:
                             <strong>{data.get('inverter_apparent_power')}</strong>
                         </p>
                         <p>
-                            <img src="static/happy.svg" class="icon" /> Energy Yield Today:
+                            <img src="static/happy.svg" class="icon" width="32" height="32" /> &nbsp; Energy Yield Today:
                             <strong>{data.get('inverter_e_today')}</strong>
                         </p>
                         <p></p> 
@@ -66,10 +68,9 @@ def index_html(data):
                             <li>Yesterday: {data.get('inverter_e_yesterday')}</li>
                             <li>This Month: {data['inverter'].get('E_MONTH')} kWh</li>
                             <li>This Year: {data['inverter'].get('E_YEAR')} kWh</li>
-                            <li>Total: {data['inverter'].get('E_TOTAL')} kWh</li>
+                            <li>Total: {data['inverter'].get('E_TOTAL')} MWh</li>
                         </ul>
                     </article>
-                    <p>&nbsp;</p>
                     <h4>Graphs</h4>
                     <details open> 
                         <summary><span id="plot_period">Today</span></summary>
@@ -79,36 +80,35 @@ def index_html(data):
                         {_plot_links()}
                         <p><a class="button" href="plots_all.html">Show All</a></p>
                     </article>
-                    <p>&nbsp;</p>
-                        <h4>Messages</h4>
-                        {''.join(f' \
-                            <details>\n \
-                                <summary>\n \
-                                    <span>{period.capitalize()}</span>\n \
-                                </summary>\n \
-                                <table>\n \
-                                    {message_table_header()} \
-                                    {_message_table_rows(data.get(period, {}))} \
-                                </table>\n \
-                            </details>\n' \
-                            for period in ['today'])}
-                        <div id="message"></div>
-                        <article>
-                            {_message_links()}
-                        </article>
+                    <h4>Messages</h4>
+                    {''.join(f' \
+                        <details>\n \
+                            <summary>\n \
+                                <span>{period.capitalize()}</span>\n \
+                            </summary>\n \
+                            <table>\n \
+                                {message_table_header()} \
+                                {_message_table_rows(data.get(period, {}))} \
+                            </table>\n \
+                        </details>\n' \
+                        for period in ['today'])}
+                    <div id="message"></div>
+                    <article>
+                        {_message_links()}
+                    </article>
                 </main>
                 {footer()}
                 <script type="text/javascript">
                     lastUpdated("{data.get('inverter_dt_obj')}")
                 </script>
             </body>
-            <script type="text/javascript">
-                document.querySelectorAll('.modebar').forEach(el => {{
-                    el.style.visibility = 'hidden';
-                }});
-            </script>
         </html>
     ''')
+#            <script type="text/javascript">
+#                document.querySelectorAll('.modebar').forEach(el => {{
+#                    el.style.visibility = 'hidden';
+#                }});
+#            </script>
 
 
 def messages_html(period, data):
@@ -192,7 +192,7 @@ def message_table_header():
         <tr>
             <th>Datetime</th>
             <th>Yield (kWh)</th>
-            <th>Power (kW)</th>
+            <th>Power (W)</th>
             <th>Message</th>
         </tr>
     ''')
@@ -208,7 +208,7 @@ def _message_table_rows(data):
                 <td>{k}</td>\n \
                 {''.join( \
                     '<td>' \
-                        f'{helper.divide(message.inverter_notification(v)[field], config.PLOTS[field]['div'], 0) \
+                        f'{helper.divide(message.inverter_notification(v)[field], config.PLOTS[field].get('div', 1), 0) \
                         if message.inverter_notification(v) else None}' \
                     '</td>\n' for field in config.PLOT_TYPES)} \
                 {'<td>-</td>\n' if not config.STORE_FILES else \
@@ -234,7 +234,7 @@ def _plot_index():
 
 def _plot_links():
     return ''.join(f' \
-        <p>📈 <a href="{config.PLOTDIR}/{period}_{plot}.html">{period.capitalize()} - {config.PLOTS[plot]['name']}</a></p>\n' \
+        <p><a href="{config.PLOTDIR}/{period}_{plot}.html"><img src="static/chart.svg" class="icon" /> {period.capitalize()} - {config.PLOTS[plot]['name']}</a></p>\n' \
             for period in [p for p in config.PERIODS if p != 'today'] \
         for plot in config.PLOT_TYPES
     )
@@ -242,7 +242,7 @@ def _plot_links():
 
 def _message_links():
     return ''.join(f' \
-        <p> 🔗 <a href="messages_{period}.html">Show {period.capitalize()} </a></p>' \
+        <p><a href="messages_{period}.html"><img src="static/link.svg" class="icon" /> Show {period.capitalize()}</a></p>' \
         for period in [p for p in config.PERIODS if p != 'today']
     )
 
