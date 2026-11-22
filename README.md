@@ -19,9 +19,7 @@ Goto webadmin page of Data Logger stick:
 
 - Set MQTT Broker under to "Advanced > Mqtt Settings"
 - Check "Status > Remote Server Information", it should say "Connected"
-- Also get your "Device serial number"
-
-Size of JSON files and database will be about 300MB per year.
+- Also get your "**Device serial number**"
 
 ## Configuration
 
@@ -30,9 +28,9 @@ If config\.py does not exist yet, first copy defaults from config.py.dist to con
 Edit config\.py:
 
 - set `BROKER_HOST`
-- (optionally) set auth with `BROKER_USERNAME` and `BROKER_PASSWORD` or remove both to disable
-- change `TOPIC` to your device serial number
-- change `TS_OFFSET` to match your timezone
+- (optional) set auth with `BROKER_USERNAME` and `BROKER_PASSWORD` or remove both to disable
+- change `TOPIC` to your **device serial number**
+- (optional) change `TS_OFFSET` to match your timezone, if needed
 
 *NOTE: Environment variables will overwrite config settings*
 
@@ -55,6 +53,8 @@ To convert old `YYYYmmdd_MMHHSS_solis.json` files to new path and filename `YYYY
 Either use uv, systemd or docker.
 
 Output html and json files are stored in 'htdocs' dir (optionally use e.g. NGINX to serve).
+
+Size of json files and database will be about 300MB per year.
 
 ## uv
 
