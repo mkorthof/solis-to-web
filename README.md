@@ -1,6 +1,6 @@
 # Solis 2 Web
 
-*Gets Solis Inverter data and stores as web pages*
+*Gets Solis Inverter data and stores it as web pages including graphs*
 
 Tested with [Solis 4G Mini Inverter](https://www.solisinverters.au/product_detail/Solis-mini-(700-3600)-4G)
 
@@ -12,8 +12,6 @@ Tested with [Solis 4G Mini Inverter](https://www.solisinverters.au/product_detai
 ## Requirements
 
 A Solis Data Logger stick ([Solis-S2-WL-ST](https://www.solisinverters.com/global/accessories9/S2_WL_ST_gl.html)), a [MQTT broker](https://mqtt.org) (Eclipse [Mosquitto](https://mosquitto.org)) and optionally a web server.
-
-To run Mosquitto with Docker, see [here](https://hub.docker.com/_/eclipse-mosquitto#how-to-use-this-image).
 
 Make sure Data Stick is inserted in the Inverter and can connect to the MQTT broker (Mosquitto).
 
@@ -34,7 +32,6 @@ Edit config\.py:
 - set `BROKER_HOST`
 - (optionally) set auth with `BROKER_USERNAME` and `BROKER_PASSWORD` or remove both to disable
 - change `TOPIC` to your device serial number
-- change `TS_OFFSET` to match your timezone
 - change `TS_OFFSET` to match your timezone
 
 *NOTE: Environment variables will overwrite config settings*
