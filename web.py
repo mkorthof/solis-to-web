@@ -182,7 +182,7 @@ def footer():
                 <a href="https://plotly.com/python">Plotly</a> |  
                 <a href="https://www.sqlite.org">SQLite</a> | 
                 <a href="https://github.com/kevquirk/simple.css">Simple.css</a> |
-                <a href="https://github.com/mkorthof/solis-to-noeb">GitHub</a>
+                <a href="https://github.com/mkorthof/solis-to-web">GitHub</a>
             </p>
         </footer>
     ''')
