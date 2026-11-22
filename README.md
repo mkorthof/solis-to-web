@@ -60,7 +60,9 @@ Size of json files and database will be about 300MB per year.
 
 If you do not have uv, check [installation](https://docs.astral.sh/uv/getting-started/installation). It will take care of dependencies (e.g. Paho and Plotly modules).
 
-Or, start in background and log to solis.log using wrapper script: `./run.sh start`
+To start in background and log to solis.log using wrapper script: `./run.sh start`
+
+Or, run uv manually in foreground: `uv run main.py`
 
 ## systemd
 
